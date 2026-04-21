@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Clock, ExternalLink } from "lucide-react";
+import { MapPin, Users, Clock, ExternalLink, Calendar } from "lucide-react";
 import type { Tournament } from "@/types/tournament";
 
 const timeControlColors: Record<string, string> = {
@@ -31,6 +31,16 @@ const statusLabels: Record<string, string> = {
   IN_PROGRESS: "In Progress",
   FINISHED: "Finished",
 };
+
+function formatDateRange(startDate: string | null, endDate: string | null): string | null {
+  if (!startDate) return null;
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const start = fmt(startDate);
+  if (!endDate) return start;
+  const end = fmt(endDate);
+  return start === end ? start : `${start} – ${end}`;
+}
 
 interface TournamentCardProps {
   tournament: Tournament;
@@ -79,6 +89,12 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
           </div>
 
           <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+            {formatDateRange(tournament.startDate, tournament.endDate) && (
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-3 w-3 shrink-0" />
+                <span>{formatDateRange(tournament.startDate, tournament.endDate)}</span>
+              </div>
+            )}
             {tournament.city && (
               <div className="flex items-center gap-1.5">
                 <MapPin className="h-3 w-3 shrink-0" />

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { scrapeTournamentList } from "@/lib/scraper";
+import { scrapeTournamentList, scrapeTournamentDetails } from "@/lib/scraper";
 
 export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -44,6 +44,38 @@ export async function POST(request: Request) {
       updated++;
     }
 
+    // Fetch details (accurate dates, rounds, organizer) for tournaments missing startDate.
+    // Capped at 15/run in batches of 5 to stay within serverless timeout.
+    const needsDates = await prisma.tournament.findMany({
+      where: { startDate: null },
+      select: { chessResultsId: true, url: true },
+      take: 15,
+    });
+
+    const BATCH_SIZE = 5;
+    for (let i = 0; i < needsDates.length; i += BATCH_SIZE) {
+      const batch = needsDates.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(async (t) => {
+          try {
+            const details = await scrapeTournamentDetails(t.url);
+            await prisma.tournament.update({
+              where: { chessResultsId: t.chessResultsId },
+              data: {
+                startDate: details.startDate ?? null,
+                endDate: details.endDate ?? null,
+                roundCount: details.roundCount ?? null,
+                organizer: details.organizer ?? null,
+                chiefArbiter: details.chiefArbiter ?? null,
+              },
+            });
+          } catch {
+            // Non-fatal: skip this tournament's details on failure
+          }
+        })
+      );
+    }
+
     await prisma.scrapeLog.update({
       where: { id: log.id },
       data: {
@@ -69,7 +101,7 @@ export async function POST(request: Request) {
           where: { id: logId },
           data: { finishedAt: new Date(), status: "error", message },
         })
-        .catch(() => {}); // don't mask original error
+        .catch(() => {});
     }
 
     return NextResponse.json(
@@ -78,4 +110,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
 

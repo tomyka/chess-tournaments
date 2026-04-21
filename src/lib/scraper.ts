@@ -123,7 +123,11 @@ export async function scrapeTournamentList(): Promise<ScrapedTournament[]> {
 export async function scrapeTournamentDetails(
   url: string
 ): Promise<Partial<ScrapedTournament>> {
-  const response = await fetch(url, {
+  const detailUrl = url.includes("turdet=")
+    ? url
+    : `${url}${url.includes("?") ? "&" : "?"}turdet=YES`;
+
+  const response = await fetch(detailUrl, {
     headers: {
       "User-Agent": "ChessTournamentsLT/1.0 (educational project)",
     },
@@ -138,38 +142,30 @@ export async function scrapeTournamentDetails(
 
   const details: Partial<ScrapedTournament> = {};
 
-  // Extract details from the tournament info table
-  $("table.CRs1 tr, table.CRs2 tr").each((_, row) => {
+  // Details table uses plain <td class="CR"> rows with label/value pairs
+  $("table tr").each((_, row) => {
     const cells = $(row).find("td");
     if (cells.length < 2) return;
 
     const label = $(cells[0]).text().trim().toLowerCase();
     const value = $(cells[1]).text().trim();
 
+    if (label === "date") {
+      // Format: "2026/04/25" or "2026/04/25 .. 2026/04/27"
+      const dateMatches = value.match(/(\d{4}\/\d{2}\/\d{2})/g);
+      if (dateMatches) {
+        const d = new Date(dateMatches[0].replace(/\//g, "-"));
+        if (!isNaN(d.getTime())) details.startDate = d;
+        if (dateMatches.length > 1) {
+          const e = new Date(dateMatches[1].replace(/\//g, "-"));
+          if (!isNaN(e.getTime())) details.endDate = e;
+        }
+      }
+    }
     if (label.includes("chief arbiter")) details.chiefArbiter = value;
-    if (label.includes("organizer")) details.organizer = value;
-    if (label.includes("number of rounds")) details.roundCount = parseInt(value) || undefined;
-    if (label.includes("number of players") || label.includes("players"))
-      details.playerCount = parseInt(value) || undefined;
-  });
-
-  // Try extracting players from standing/ranking table
-  details.players = [];
-  $("table.CRs1 tr, table.CRs2 tr").each((_, row) => {
-    const cells = $(row).find("td");
-    if (cells.length < 3) return;
-
-    const rank = parseInt($(cells[0]).text().trim());
-    if (isNaN(rank)) return;
-
-    const nameCell = cells.length > 3 ? cells[3] : cells[1];
-    const playerName = $(nameCell).text().trim();
-    if (!playerName) return;
-
-    details.players!.push({
-      name: playerName,
-      rank,
-    });
+    if (label.includes("organizer")) details.organizer = value.split(",")[0].trim();
+    if (label.includes("number of rounds"))
+      details.roundCount = parseInt(value) || undefined;
   });
 
   return details;
