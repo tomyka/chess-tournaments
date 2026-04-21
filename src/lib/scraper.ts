@@ -38,10 +38,11 @@ export async function scrapeTournamentList(): Promise<ScrapedTournament[]> {
   const $ = cheerio.load(html);
   const tournaments: ScrapedTournament[] = [];
 
-  // The tournament table contains rows with tournament data
-  $("table.CRs1 tr, table.CRs2 tr").each((_, row) => {
+  // Rows are <tr class="CRg1 LTU"> / <tr class="CRg2 LTU"> inside <table class="CRs2">
+  // Each row has 3 cells: [No., Name+link, TimeControl+Status]
+  $("table.CRs2 tr.LTU").each((_, row) => {
     const cells = $(row).find("td");
-    if (cells.length < 4) return;
+    if (cells.length < 3) return;
 
     const link = $(cells[1]).find("a");
     if (!link.length) return;
@@ -50,22 +51,25 @@ export async function scrapeTournamentList(): Promise<ScrapedTournament[]> {
     const href = link.attr("href");
     if (!name || !href) return;
 
-    // Extract chess-results ID from URL
+    // Extract chess-results ID from URL (e.g. tnr1376296)
     const idMatch = href.match(/tnr(\d+)/);
     if (!idMatch) return;
 
     const chessResultsId = `tnr${idMatch[1]}`;
     const url = href.startsWith("http") ? href : `${BASE_URL}/${href}`;
 
-    // Parse time control from the status column text
-    const statusText = $(cells[2]).text().trim();
-    const timeControlMatch = statusText.match(/^(St|Rp|Bz)/i);
-    const timeControl = timeControlMatch
-      ? parseTimeControl(timeControlMatch[1])
-      : "UNKNOWN";
+    // Time control is in <small>Rp</small> / <small>St</small> / <small>Bz</small>
+    const tcText = $(cells[2]).find("small").first().text().trim();
+    const timeControl = parseTimeControl(tcText);
 
-    const lastUpdate = $(cells[3]).text().trim();
-    const status = parseStatus(lastUpdate);
+    // Status is derived from the div class: p_5=not started, p_17=playing, p_18=finished
+    const statusClass = $(cells[2]).find("div").first().attr("class") ?? "";
+    const status = statusClass.includes("p_17")
+      ? "IN_PROGRESS"
+      : statusClass.includes("p_18")
+      ? "FINISHED"
+      : "NOT_STARTED";
+
     const { city } = parseDateFromName(name);
 
     tournaments.push({
