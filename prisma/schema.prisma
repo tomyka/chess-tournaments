@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tournament {
+  id              String            @id @default(cuid())
+  chessResultsId  String            @unique // e.g. "tnr1376296"
+  name            String
+  city            String?
+  startDate       DateTime?
+  endDate         DateTime?
+  timeControl     TimeControl       @default(UNKNOWN)
+  status          TournamentStatus  @default(NOT_STARTED)
+  playerCount     Int?
+  roundCount      Int?
+  chiefArbiter    String?
+  organizer       String?
+  url             String            // full chess-results.com URL
+  lastScrapedAt   DateTime          @default(now())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  players         TournamentPlayer[]
+
+  @@index([startDate])
+  @@index([status])
+  @@index([timeControl])
+}
+
+model TournamentPlayer {
+  id            String     @id @default(cuid())
+  tournamentId  String
+  name          String
+  fideId        String?
+  rating        Int?
+  federation    String?
+  title         String?
+  rank          Int?
+  points        Float?
+
+  tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, name])
+  @@index([fideId])
+}
+
+model ScrapeLog {
+  id          String   @id @default(cuid())
+  startedAt   DateTime @default(now())
+  finishedAt  DateTime?
+  status      String   @default("running") // running, success, error
+  message     String?
+  tournamentsFound Int @default(0)
+  tournamentsUpdated Int @default(0)
+}
+
+enum TimeControl {
+  STANDARD
+  RAPID
+  BLITZ
+  UNKNOWN
+}
+
+enum TournamentStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  FINISHED
+}
