@@ -29,9 +29,9 @@ function parseDateFromName(name: string): { city?: string; startDate?: Date } {
     if (!isNaN(d.getTime())) startDate = d;
   }
 
-  // Pattern 2: "(City, MM-DD)" or "(MM-DD)" — assume current year
+  // Pattern 2: "(City, MM-DD)" — month-day in closing paren after a comma
   if (!startDate) {
-    const shortDateMatch = name.match(/,\s*(\d{2}-\d{2})\)/);
+    const shortDateMatch = name.match(/,\s*(\d{2}-\d{2})\s*\)/);
     if (shortDateMatch) {
       const year = new Date().getFullYear();
       const d = new Date(`${year}-${shortDateMatch[1]}`);
@@ -39,13 +39,18 @@ function parseDateFromName(name: string): { city?: string; startDate?: Date } {
     }
   }
 
-  // Pattern 3: month-day at end like "05-07" in name without city prefix
+  // Pattern 3: "(MM DD-DD)" style like "(07 03-06)" where MM is month, DD-DD is day range
   if (!startDate) {
-    const mdMatch = name.match(/\b(\d{2}-\d{2})\b/);
-    if (mdMatch) {
+    const monthDayRangeMatch = name.match(/\((\d{2})\s+\d{2}-\d{2}\)/);
+    if (monthDayRangeMatch) {
       const year = new Date().getFullYear();
-      const d = new Date(`${year}-${mdMatch[1]}`);
-      if (!isNaN(d.getTime())) startDate = d;
+      const month = monthDayRangeMatch[1];
+      // Use the first day in the range
+      const dayMatch = name.match(/\((\d{2})\s+(\d{2})-\d{2}\)/);
+      if (dayMatch) {
+        const d = new Date(`${year}-${dayMatch[1]}-${dayMatch[2]}`);
+        if (!isNaN(d.getTime())) startDate = d;
+      }
     }
   }
 

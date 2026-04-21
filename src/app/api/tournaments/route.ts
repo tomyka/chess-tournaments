@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
       prisma.tournament.findMany({
         where,
         orderBy: [
+          { status: "desc" },
           { startDate: { sort: "asc", nulls: "last" } },
           { createdAt: "desc" },
         ],
