@@ -28,7 +28,10 @@ export async function GET(request: NextRequest) {
     const [tournaments, total] = await Promise.all([
       prisma.tournament.findMany({
         where,
-        orderBy: { lastScrapedAt: "desc" },
+        orderBy: [
+          { startDate: { sort: "asc", nulls: "last" } },
+          { createdAt: "desc" },
+        ],
         skip: (page - 1) * limit,
         take: limit,
       }),

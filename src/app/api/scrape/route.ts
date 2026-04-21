@@ -25,6 +25,7 @@ export async function POST(request: Request) {
         update: {
           name: t.name,
           city: t.city,
+          startDate: t.startDate ?? null,
           timeControl: t.timeControl,
           status: t.status,
           url: t.url,
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
           chessResultsId: t.chessResultsId,
           name: t.name,
           city: t.city,
+          startDate: t.startDate ?? null,
           timeControl: t.timeControl,
           status: t.status,
           url: t.url,

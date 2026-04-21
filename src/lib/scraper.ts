@@ -5,7 +5,7 @@ import type { ScrapedTournament } from "@/types/tournament";
 const BASE_URL = "https://chess-results.com";
 const LTU_FED_URL = `${BASE_URL}/fed.aspx?lan=1&fed=LTU`;
 
-function parseDateFromName(name: string): { city?: string } {
+function parseDateFromName(name: string): { city?: string; startDate?: Date } {
   const cityPatterns = [
     /\(([A-Za-zÀ-žĀ-ž\s]+),/,
     /(?:^|\s)(Vilnius|Kaunas|Klaipėda|Šiauliai|Panevėžys|Druskininkai|Visaginas|Alytus)/i,
@@ -20,7 +20,36 @@ function parseDateFromName(name: string): { city?: string } {
     }
   }
 
-  return { city };
+  let startDate: Date | undefined;
+
+  // Pattern 1: full ISO date like "2026-04-23" anywhere in the name
+  const isoMatch = name.match(/(\d{4}-\d{2}-\d{2})/);
+  if (isoMatch) {
+    const d = new Date(isoMatch[1]);
+    if (!isNaN(d.getTime())) startDate = d;
+  }
+
+  // Pattern 2: "(City, MM-DD)" or "(MM-DD)" — assume current year
+  if (!startDate) {
+    const shortDateMatch = name.match(/,\s*(\d{2}-\d{2})\)/);
+    if (shortDateMatch) {
+      const year = new Date().getFullYear();
+      const d = new Date(`${year}-${shortDateMatch[1]}`);
+      if (!isNaN(d.getTime())) startDate = d;
+    }
+  }
+
+  // Pattern 3: month-day at end like "05-07" in name without city prefix
+  if (!startDate) {
+    const mdMatch = name.match(/\b(\d{2}-\d{2})\b/);
+    if (mdMatch) {
+      const year = new Date().getFullYear();
+      const d = new Date(`${year}-${mdMatch[1]}`);
+      if (!isNaN(d.getTime())) startDate = d;
+    }
+  }
+
+  return { city, startDate };
 }
 
 export async function scrapeTournamentList(): Promise<ScrapedTournament[]> {
@@ -70,12 +99,13 @@ export async function scrapeTournamentList(): Promise<ScrapedTournament[]> {
       ? "FINISHED"
       : "NOT_STARTED";
 
-    const { city } = parseDateFromName(name);
+    const { city, startDate } = parseDateFromName(name);
 
     tournaments.push({
       chessResultsId,
       name,
       city,
+      startDate,
       timeControl,
       status,
       url,
