@@ -8,6 +8,9 @@ npm run lint           # ESLint
 npm test               # Run all tests with Vitest
 npx vitest run src/lib/scraper.test.ts   # Run a single test file
 npx vitest -t "parses Rapid"             # Run a single test by name
+npm run test:e2e       # Run Playwright E2E tests (all browsers)
+npm run test:e2e -- --project=chromium   # Run E2E tests in Chromium only
+npm run test:e2e:ui    # Open Playwright interactive UI mode
 npm run db:generate    # Regenerate Prisma client after schema changes
 npm run db:push        # Push schema changes to the database
 ```
@@ -37,4 +40,8 @@ Key architectural layers:
 - **Database changes**: Modify `prisma/schema.prisma`, then run `npx prisma generate` and `npx prisma db push` (dev) or `npx prisma migrate dev` (with migration history).
 - **Environment variables**: Never commit `.env`. Use `.env.example` as template. Required: `DATABASE_URL`. Optional: `CRON_SECRET`.
 - **Time controls**: Tournaments are categorized as `STANDARD` (St), `RAPID` (Rp), or `BLITZ` (Bz) — these map to chess-results.com's abbreviations.
-- **CI pipeline**: GitHub Actions runs lint → test → build on every push/PR to `main`. The build step uses a fake `DATABASE_URL` since it only needs the Prisma client generated.
+- **CI pipeline**: GitHub Actions runs lint → test → build → E2E on every push/PR to `main`. The build step uses a fake `DATABASE_URL` since it only needs the Prisma client generated. E2E runs Playwright against Chromium only in CI.
+
+## MCP Servers
+
+A Playwright MCP server is configured in `.vscode/mcp.json`. This enables Copilot to interact with the running app in a real browser for debugging, testing, and visual validation. Start the dev server (`npm run dev`) before using it.
