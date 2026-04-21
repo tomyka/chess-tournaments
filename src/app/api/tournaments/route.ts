@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Failed to fetch tournaments:", error);
     return NextResponse.json(
-      { error: "Failed to fetch tournaments" },
+      { error: "Failed to fetch tournaments", message: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
