@@ -6,6 +6,52 @@ import { getBrowser, updateActivityTime, closeBrowser } from "./browser-manager"
 const BASE_URL = "https://chess-results.com";
 const SEARCH_URL = "https://s3.chess-results.com/turniersuche.aspx?SNode=S0";
 
+/**
+ * Fetch the tournament date from its details page
+ * Looks for pattern: "Date" label followed by "YYYY/MM/DD" format
+ */
+async function fetchTournamentDate(url: string): Promise<Date | undefined> {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "ChessTournamentsLT/1.0 (educational project)",
+      },
+    });
+    
+    if (!response.ok) return undefined;
+    
+    const html = await response.text();
+    const $ = cheerio.load(html);
+    
+    // Look for "Date" row - pattern: "Date" label in one cell, date in format YYYY/MM/DD
+    const datePattern = /(\d{4})\/(\d{2})\/(\d{2})/;
+    
+    // Try to find it in the page
+    let dateMatch: RegExpMatchArray | null = null;
+    
+    // Scan all table cells for the date pattern
+    $("td, div").each((_, elem) => {
+      const text = $(elem).text();
+      const match = text.match(datePattern);
+      if (match && !dateMatch) {
+        dateMatch = match;
+      }
+    });
+    
+    if (dateMatch) {
+      const date = new Date(`${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    
+    return undefined;
+  } catch (error) {
+    console.error(`Failed to fetch date for ${url}:`, error);
+    return undefined;
+  }
+}
+
 function parseDateFromName(name: string): { city?: string; startDate?: Date } {
   const cityPatterns = [
     /\(([A-Za-zÀ-žĀ-ž\s]+),/,
@@ -287,7 +333,7 @@ async function scrapeFederationPageFallback(): Promise<ScrapedTournament[]> {
       chessResultsId,
       name,
       city,
-      startDate,
+      startDate, // Will be filled from details page if null
       timeControl,
       status: status as "NOT_STARTED" | "IN_PROGRESS" | "FINISHED",
       url,
@@ -298,6 +344,22 @@ async function scrapeFederationPageFallback(): Promise<ScrapedTournament[]> {
     console.warn("No tournaments found from federation page. HTML may have changed.");
   } else {
     console.log(`Successfully scraped ${tournaments.length} tournaments from federation page`);
+  }
+
+  // Fetch missing dates from tournament details pages
+  console.log(`Fetching dates for tournaments without dates...`);
+  let fetchedCount = 0;
+  for (const tournament of tournaments) {
+    if (!tournament.startDate) {
+      const date = await fetchTournamentDate(tournament.url);
+      if (date) {
+        tournament.startDate = date;
+        fetchedCount++;
+      }
+    }
+  }
+  if (fetchedCount > 0) {
+    console.log(`Successfully fetched ${fetchedCount} tournament dates from detail pages`);
   }
 
   return tournaments;
