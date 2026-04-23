@@ -5,6 +5,7 @@ import { TournamentCard } from "@/components/tournaments/tournament-card";
 import { TournamentFilters } from "@/components/tournaments/tournament-filters";
 import { TournamentListSkeleton } from "@/components/tournaments/tournament-skeleton";
 import { TournamentCalendar } from "@/components/tournaments/tournament-calendar";
+import { DatePickerCalendar } from "@/components/tournaments/date-picker-calendar";
 import { ViewToggle } from "@/components/tournaments/view-toggle";
 import { FilterDrawer } from "@/components/tournaments/filter-drawer";
 import { LoadMoreButton } from "@/components/tournaments/load-more-button";
@@ -25,23 +26,7 @@ interface TournamentsResponse {
   };
 }
 
-function getDefaultDates() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().split("T")[0];
-
-  const nextNextSunday = new Date(today);
-  const daysUntilSunday = (7 - today.getDay()) % 7 || 7;
-  nextNextSunday.setDate(nextNextSunday.getDate() + daysUntilSunday + 7);
-  const nextNextSundayStr = nextNextSunday.toISOString().split("T")[0];
-
-  return { todayStr, nextNextSundayStr };
-}
-
 export default function TournamentsPage() {
-  // Initialize with null to avoid hydration mismatch
-  const [defaultDates, setDefaultDates] = useState<{ todayStr: string; nextNextSundayStr: string } | null>(null);
-  
   const [data, setData] = useState<TournamentsResponse | null>(null);
   const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,17 +38,6 @@ export default function TournamentsPage() {
   const [page, setPage] = useState(1);
   const [view, setView] = useState<"grid" | "calendar">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
-  // Initialize dates after hydration
-  useEffect(() => {
-    const dates = getDefaultDates();
-    setDefaultDates(dates);
-    setDateStart(dates.todayStr);
-    setDateEnd(dates.nextNextSundayStr);
-  }, []);
-
-  const todayStr = defaultDates?.todayStr || "";
-  const nextNextSundayStr = defaultDates?.nextNextSundayStr || "";
   
   const fetchTournaments = useCallback(async (pageNum: number = 1) => {
     const isFirstPage = pageNum === 1;
@@ -141,18 +115,16 @@ export default function TournamentsPage() {
 
   const handleDateRangeChange = useCallback(
     (start: string | null, end: string | null) => {
-      setDateStart(start || todayStr);
-      setDateEnd(end || nextNextSundayStr);
+      setDateStart(start || "");
+      setDateEnd(end || "");
     },
-    [todayStr, nextNextSundayStr]
+    []
   );
 
   const handleClearFilters = useCallback(() => {
     setSearch("");
     setTimeControl("ALL");
-    setDateStart(todayStr);
-    setDateEnd(nextNextSundayStr);
-  }, [todayStr, nextNextSundayStr]);
+  }, []);
 
   const hasMore = data ? page < data.pagination.totalPages : false;
   const displayTournaments = view === "calendar" ? data?.tournaments || [] : allTournaments;
@@ -177,11 +149,17 @@ export default function TournamentsPage() {
             onSearchChange={handleSearchChange}
             timeControl={timeControl}
             onTimeControlChange={handleTimeControlChange}
-            dateStart={dateStart}
-            dateEnd={dateEnd}
-            onDateRangeChange={handleDateRangeChange}
             onOpenMobileFilters={() => setMobileFiltersOpen(true)}
           />
+
+          {/* Calendar Date Picker */}
+          <div className="mt-4">
+            <DatePickerCalendar
+              selectedDateStart={dateStart}
+              selectedDateEnd={dateEnd}
+              onDateRangeSelect={handleDateRangeChange}
+            />
+          </div>
         </div>
       </div>
 
@@ -193,9 +171,6 @@ export default function TournamentsPage() {
         onSearchChange={handleSearchChange}
         timeControl={timeControl}
         onTimeControlChange={handleTimeControlChange}
-        dateStart={dateStart}
-        dateEnd={dateEnd}
-        onDateRangeChange={handleDateRangeChange}
         onClearAll={handleClearFilters}
       />
 

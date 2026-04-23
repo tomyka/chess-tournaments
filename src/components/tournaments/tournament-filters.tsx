@@ -11,9 +11,6 @@ interface TournamentFiltersProps {
   onSearchChange: (value: string) => void;
   timeControl: TimeControlFilter;
   onTimeControlChange: (value: TimeControlFilter) => void;
-  dateStart: string | null;
-  dateEnd: string | null;
-  onDateRangeChange: (start: string | null, end: string | null) => void;
   onOpenMobileFilters?: () => void;
 }
 
@@ -29,12 +26,9 @@ export function TournamentFilters({
   onSearchChange,
   timeControl,
   onTimeControlChange,
-  dateStart,
-  dateEnd,
-  onDateRangeChange,
   onOpenMobileFilters,
 }: TournamentFiltersProps) {
-  const hasFilters = search || timeControl !== "ALL" || dateStart || dateEnd;
+  const hasFilters = search || timeControl !== "ALL";
 
   return (
     <div className="space-y-3">
@@ -51,7 +45,7 @@ export function TournamentFilters({
 
       {/* Compact Filter Row - Desktop only, with Mobile filter button */}
       <div className="flex gap-2 items-center flex-wrap">
-        {/* Desktop filters - hidden on mobile */}
+        {/* Desktop time control filters - hidden on mobile */}
         <div className="hidden sm:flex gap-1.5 items-center">
           {timeControlOptions.map((option) => (
             <Badge
@@ -63,28 +57,6 @@ export function TournamentFilters({
               {option.label}
             </Badge>
           ))}
-        </div>
-
-        {/* Desktop date inputs - hidden on mobile */}
-        <div className="hidden sm:flex gap-1.5 items-end">
-          <div className="flex gap-1 items-end">
-            <input
-              type="date"
-              value={dateStart || ""}
-              onChange={(e) =>
-                onDateRangeChange(e.target.value || null, dateEnd)
-              }
-              className="h-9 text-sm border border-input rounded px-2 bg-background"
-            />
-            <input
-              type="date"
-              value={dateEnd || ""}
-              onChange={(e) =>
-                onDateRangeChange(dateStart, e.target.value || null)
-              }
-              className="h-9 text-sm border border-input rounded px-2 bg-background"
-            />
-          </div>
         </div>
 
         {/* Mobile filter button */}
@@ -105,7 +77,6 @@ export function TournamentFilters({
             onClick={() => {
               onSearchChange("");
               onTimeControlChange("ALL");
-              onDateRangeChange(null, null);
             }}
             className="h-9 gap-1 text-xs ml-auto"
           >

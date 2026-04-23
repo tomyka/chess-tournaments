@@ -14,9 +14,6 @@ interface FilterDrawerProps {
   onSearchChange: (value: string) => void;
   timeControl: TimeControlFilter;
   onTimeControlChange: (value: TimeControlFilter) => void;
-  dateStart: string | null;
-  dateEnd: string | null;
-  onDateRangeChange: (start: string | null, end: string | null) => void;
   onClearAll: () => void;
 }
 
@@ -34,9 +31,6 @@ export function FilterDrawer({
   onSearchChange,
   timeControl,
   onTimeControlChange,
-  dateStart,
-  dateEnd,
-  onDateRangeChange,
   onClearAll,
 }: FilterDrawerProps) {
   return (
@@ -98,37 +92,6 @@ export function FilterDrawer({
                       {option.label}
                     </Badge>
                   ))}
-                </div>
-              </div>
-
-              {/* Date Range */}
-              <div className="space-y-3">
-                <label className="text-xs font-medium uppercase text-muted-foreground">
-                  Date Range
-                </label>
-                <div className="space-y-2">
-                  <div>
-                    <label className="text-xs text-muted-foreground">From</label>
-                    <Input
-                      type="date"
-                      value={dateStart || ""}
-                      onChange={(e) =>
-                        onDateRangeChange(e.target.value || null, dateEnd)
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">To</label>
-                    <Input
-                      type="date"
-                      value={dateEnd || ""}
-                      onChange={(e) =>
-                        onDateRangeChange(dateStart, e.target.value || null)
-                      }
-                      className="mt-1"
-                    />
-                  </div>
                 </div>
               </div>
 
