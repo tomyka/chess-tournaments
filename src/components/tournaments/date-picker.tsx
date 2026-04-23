@@ -15,7 +15,7 @@ import {
   isWithinInterval,
   isBefore,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DatePickerProps {
@@ -82,23 +82,23 @@ export function DatePicker({
     const calendarStart = startOfWeek(monthStart);
     const calendarEnd = endOfWeek(monthEnd);
     const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-    const weekDays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+    const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
 
     return (
-      <div className="w-56">
+      <div className="w-72">
         {/* Month/Year Header */}
-        <div className="mb-2 text-center">
-          <h3 className="text-xs font-semibold text-gray-900">
-            {format(date, "MMM yyyy")}
+        <div className="mb-4 text-center">
+          <h3 className="text-base font-semibold text-gray-900">
+            {format(date, "MMMM yyyy")}
           </h3>
         </div>
 
         {/* Weekday Headers */}
-        <div className="grid grid-cols-7 gap-0.5 mb-0.5">
+        <div className="grid grid-cols-7 gap-0 mb-2">
           {weekDays.map((day) => (
             <div
               key={day}
-              className="text-center text-xs font-medium text-gray-600 py-0.5"
+              className="text-center text-xs font-semibold text-gray-700 py-2"
             >
               {day}
             </div>
@@ -106,7 +106,7 @@ export function DatePicker({
         </div>
 
         {/* Days Grid */}
-        <div className="grid grid-cols-7 gap-0.5">
+        <div className="grid grid-cols-7 gap-0">
           {days.map((day) => {
             const inMonth = isSameMonth(day, date);
             const isStart = tempStart && isSameDay(day, tempStart);
@@ -115,23 +115,22 @@ export function DatePicker({
             const isToday = isSameDay(day, new Date());
 
             let bgColor = "";
-            let textColor = "";
+            let textColor = "text-gray-700";
 
-            if (isStart || isEnd) {
-              bgColor = "bg-blue-600";
-              textColor = "text-white";
-            } else if (inRange) {
-              bgColor = "bg-blue-100";
-              textColor = "text-gray-900";
-            } else if (!inMonth) {
+            if (!inMonth) {
               bgColor = "";
               textColor = "text-gray-300";
+            } else if (isStart || isEnd) {
+              bgColor = "bg-black text-white";
+              textColor = "text-white";
+            } else if (inRange) {
+              bgColor = "bg-gray-200";
+              textColor = "text-gray-700";
             } else if (isToday) {
-              bgColor = "";
-              textColor = "text-blue-600 font-semibold";
+              bgColor = "border-2 border-black";
+              textColor = "text-gray-900 font-semibold";
             } else {
               bgColor = "hover:bg-gray-100";
-              textColor = "text-gray-700";
             }
 
             return (
@@ -140,10 +139,11 @@ export function DatePicker({
                 onClick={() => inMonth && handleDayClick(day)}
                 disabled={!inMonth}
                 className={`
-                  h-7 text-xs transition-all rounded
+                  aspect-square text-sm font-medium transition-all
                   ${bgColor} ${textColor}
-                  ${inMonth && !isStart && !isEnd && !inRange ? "cursor-pointer hover:bg-gray-100" : ""}
+                  ${inMonth && !isStart && !isEnd && !inRange && !isToday ? "cursor-pointer" : ""}
                   ${!inMonth ? "cursor-default" : ""}
+                  rounded
                 `}
               >
                 {format(day, "d")}
@@ -159,49 +159,52 @@ export function DatePicker({
 
   return (
     <div className="relative inline-block">
-      {/* Input/Trigger - Booking.com style */}
+      {/* Input/Trigger - Airbnb style */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-0 border border-gray-300 rounded-lg bg-white hover:border-gray-400 transition-colors shadow-sm overflow-hidden"
+        className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-full bg-white hover:shadow-md transition-shadow cursor-pointer"
       >
-        {/* Check-in */}
-        <div className="flex items-center gap-2 px-3 py-2 border-r border-gray-200 min-w-[140px]">
-          <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
-          <div className="text-left text-sm">
-            <div className="text-xs text-gray-500 font-medium">Check-in</div>
-            <div className="text-sm font-medium text-gray-900">
+        <div className="flex items-center gap-4">
+          {/* Check-in */}
+          <div className="text-left">
+            <div className="text-xs font-semibold text-gray-700 uppercase">
+              Check-in
+            </div>
+            <div className="text-sm text-gray-900 font-medium">
               {selectedDateStart
-                ? format(new Date(selectedDateStart), "d MMM")
-                : "Add date"}
+                ? format(new Date(selectedDateStart), "MMM d")
+                : "Add dates"}
             </div>
           </div>
-        </div>
 
-        {/* Check-out */}
-        <div className="flex items-center gap-2 px-3 py-2 min-w-[140px]">
-          <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
-          <div className="text-left text-sm">
-            <div className="text-xs text-gray-500 font-medium">Check-out</div>
-            <div className="text-sm font-medium text-gray-900">
+          {/* Divider */}
+          <div className="w-px h-6 bg-gray-300" />
+
+          {/* Check-out */}
+          <div className="text-left">
+            <div className="text-xs font-semibold text-gray-700 uppercase">
+              Check-out
+            </div>
+            <div className="text-sm text-gray-900 font-medium">
               {selectedDateEnd
-                ? format(new Date(selectedDateEnd), "d MMM")
-                : "Add date"}
+                ? format(new Date(selectedDateEnd), "MMM d")
+                : "Add dates"}
             </div>
           </div>
-        </div>
 
-        {/* Clear button */}
-        {selectedDateStart && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClear();
-            }}
-            className="px-2 py-2 hover:bg-gray-100 transition-colors"
-          >
-            <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-          </button>
-        )}
+          {/* Clear button */}
+          {selectedDateStart && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClear();
+              }}
+              className="ml-2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="h-4 w-4 text-gray-500" />
+            </button>
+          )}
+        </div>
       </button>
 
       {/* Calendar Popover */}
@@ -214,48 +217,47 @@ export function DatePicker({
           />
 
           {/* Calendar Panel */}
-          <div className="absolute top-full mt-2 z-50 bg-white rounded-lg border border-gray-200 shadow-lg p-4 w-full sm:w-auto sm:left-0">
-            {/* Navigation */}
-            <div className="flex items-center justify-between mb-3">
+          <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 z-50 bg-white rounded-3xl border border-gray-200 shadow-2xl p-6">
+            {/* Header with Navigation */}
+            <div className="flex items-center justify-between mb-6">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-                className="h-6 w-6 p-0"
+                className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
               >
-                <ChevronLeft className="h-4 w-4 text-gray-600" />
+                <ChevronLeft className="h-5 w-5 text-gray-700" />
               </Button>
-              <span className="text-xs text-gray-600 font-medium flex-1 text-center">
+              <span className="text-lg font-semibold text-gray-900 flex-1 text-center">
                 {tempStart && tempEnd
-                  ? `${format(tempStart, "d MMM")} - ${format(tempEnd, "d MMM")}`
+                  ? `${format(tempStart, "MMM d")} - ${format(tempEnd, "MMM d")}`
                   : tempStart
-                  ? `From ${format(tempStart, "d MMM")}`
+                  ? `From ${format(tempStart, "MMM d")}`
                   : "Select dates"}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-                className="h-6 w-6 p-0"
+                className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
               >
-                <ChevronRight className="h-4 w-4 text-gray-600" />
+                <ChevronRight className="h-5 w-5 text-gray-700" />
               </Button>
             </div>
 
             {/* Two Calendars */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
               {renderCalendar(currentDate)}
               {renderCalendar(nextMonth)}
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 pt-2 border-t border-gray-200">
+            <div className="flex gap-3 pt-4 border-t border-gray-200">
               {(tempStart || tempEnd) && (
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={handleClear}
-                  className="flex-1 h-7 text-xs"
+                  className="flex-1 h-10 text-sm font-semibold rounded-lg"
                 >
                   Clear
                 </Button>
@@ -263,10 +265,9 @@ export function DatePicker({
               <Button
                 onClick={handleApply}
                 disabled={!tempStart}
-                size="sm"
-                className="flex-1 h-7 text-xs bg-blue-600 hover:bg-blue-700"
+                className="flex-1 h-10 text-sm font-semibold bg-black hover:bg-gray-800 text-white rounded-lg"
               >
-                Done
+                Search
               </Button>
             </div>
           </div>
