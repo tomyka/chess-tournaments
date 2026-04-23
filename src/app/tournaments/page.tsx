@@ -5,12 +5,14 @@ import { TournamentCard } from "@/components/tournaments/tournament-card";
 import { TournamentFilters } from "@/components/tournaments/tournament-filters";
 import { TournamentListSkeleton } from "@/components/tournaments/tournament-skeleton";
 import { DatePickerV2 } from "@/components/tournaments/date-picker-v2";
+import { CountryFilter } from "@/components/tournaments/country-filter";
 import { LoadMoreButton } from "@/components/tournaments/load-more-button";
 import { Button } from "@/components/ui/button";
 import { X, Trophy } from "lucide-react";
 import type {
   Tournament,
   TimeControlFilter,
+  CountryFilter as CountryFilterType,
 } from "@/types/tournament";
 
 interface TournamentsResponse {
@@ -36,6 +38,7 @@ export default function TournamentsPage() {
     "RAPID",
     "BLITZ",
   ]);
+  const [country, setCountry] = useState<CountryFilterType>(["Lithuania", "Latvia"]);
   const [dateStart, setDateStart] = useState<string>("");
   const [dateEnd, setDateEnd] = useState<string>("");
   const [page, setPage] = useState(1);
@@ -53,6 +56,7 @@ export default function TournamentsPage() {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (timeControl.length > 0) params.set("timeControl", timeControl.join(","));
+      if (country.length > 0) params.set("country", country.join(","));
       if (dateStart) params.set("dateStart", dateStart);
       if (dateEnd) params.set("dateEnd", dateEnd);
       
@@ -85,7 +89,7 @@ export default function TournamentsPage() {
         setLoadingMore(false);
       }
     }
-  }, [search, timeControl, dateStart, dateEnd, sortBy]);
+  }, [search, timeControl, country, dateStart, dateEnd, sortBy]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -93,7 +97,7 @@ export default function TournamentsPage() {
       setAllTournaments([]);
     }, 300);
     return () => clearTimeout(debounce);
-  }, [search, timeControl, dateStart, dateEnd, sortBy]);
+  }, [search, timeControl, country, dateStart, dateEnd, sortBy]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -127,6 +131,7 @@ export default function TournamentsPage() {
   const handleClearFilters = useCallback(() => {
     setSearch("");
     setTimeControl(["STANDARD", "RAPID", "BLITZ"]);
+    setCountry(["Lithuania", "Latvia"]);
     setDateStart("");
     setDateEnd("");
   }, []);
@@ -149,42 +154,52 @@ export default function TournamentsPage() {
           {/* Filter Section */}
           <div className="space-y-3">
             {/* Search and main filters */}
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-              <div className="flex-1 sm:flex-none">
-                <TournamentFilters
-                  search={search}
-                  onSearchChange={handleSearchChange}
-                  timeControl={timeControl}
-                  onTimeControlChange={handleTimeControlChange}
-                />
-              </div>
-              <div className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
-                <DatePickerV2
-                  selectedDateStart={dateStart}
-                  selectedDateEnd={dateEnd}
-                  onDateRangeSelect={handleDateRangeChange}
-                />
-                <div className="flex items-center gap-2">
-                  <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                    Sort by:
-                  </label>
-                  <select
-                    id="sort-select"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="h-9 px-3 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                  >
-                    <option value="date-asc">Upcoming First</option>
-                    <option value="date-desc">Recent First</option>
-                    <option value="rating-desc">Highest Rating</option>
-                    <option value="players-desc">Most Players</option>
-                  </select>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                <div className="flex-1 sm:flex-none">
+                  <TournamentFilters
+                    search={search}
+                    onSearchChange={handleSearchChange}
+                    timeControl={timeControl}
+                    onTimeControlChange={handleTimeControlChange}
+                  />
                 </div>
+                <div className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                  <DatePickerV2
+                    selectedDateStart={dateStart}
+                    selectedDateEnd={dateEnd}
+                    onDateRangeSelect={handleDateRangeChange}
+                  />
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                      Sort by:
+                    </label>
+                    <select
+                      id="sort-select"
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as SortOption)}
+                      className="h-9 px-3 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    >
+                      <option value="date-asc">Upcoming First</option>
+                      <option value="date-desc">Recent First</option>
+                      <option value="rating-desc">Highest Rating</option>
+                      <option value="players-desc">Most Players</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Country filter on second row */}
+              <div className="flex items-center">
+                <CountryFilter
+                  selected={country}
+                  onChange={setCountry}
+                />
               </div>
             </div>
 
             {/* Active filters pills */}
-            {(search || timeControl.length < 3 || dateStart || sortBy !== "date-asc") && (
+            {(search || timeControl.length < 3 || country.length < 2 || dateStart || sortBy !== "date-asc") && (
               <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-gray-100">
                 {search && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
@@ -205,6 +220,19 @@ export default function TournamentsPage() {
                         setTimeControl(["STANDARD", "RAPID", "BLITZ"])
                       }
                       className="hover:text-purple-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {country.length < 2 && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-full">
+                    {country.join(", ")}
+                    <button
+                      onClick={() =>
+                        setCountry(["Lithuania", "Latvia"])
+                      }
+                      className="hover:text-indigo-900"
                     >
                       <X className="h-3 w-3" />
                     </button>

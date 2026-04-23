@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const timeControl = searchParams.get("timeControl");
+    const country = searchParams.get("country");
     const status = searchParams.get("status");
     const search = searchParams.get("search");
     const dateStart = searchParams.get("dateStart");
@@ -18,6 +19,12 @@ export async function GET(request: NextRequest) {
       const types = timeControl.split(",").filter((t) => t);
       if (types.length > 0) {
         where.timeControl = { in: types };
+      }
+    }
+    if (country) {
+      const countries = country.split(",").filter((c) => c);
+      if (countries.length > 0) {
+        where.country = { in: countries };
       }
     }
     if (status && status !== "ALL") {

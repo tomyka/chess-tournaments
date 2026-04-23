@@ -8,7 +8,7 @@ export function Header() {
         <div className="h-14 flex items-center">
           <Link href="/" className="flex items-center gap-2 font-bold text-sm">
             <Crown className="h-5 w-5 text-amber-500" />
-            <span>Chess Tournaments LT</span>
+            <span>Chess Tournaments</span>
           </Link>
         </div>
       </div>

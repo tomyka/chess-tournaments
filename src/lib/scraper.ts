@@ -266,6 +266,7 @@ async function scrapeSearchPageWithPersistentBrowser(): Promise<ScrapedTournamen
       tournaments.push({
         chessResultsId,
         name,
+        country: "Lithuania",
         city,
         startDate,
         timeControl,
@@ -289,91 +290,82 @@ async function scrapeSearchPageWithPersistentBrowser(): Promise<ScrapedTournamen
 
 // Fallback: Scrape from federation page if Puppeteer fails
 async function scrapeFederationPageFallback(): Promise<ScrapedTournament[]> {
-  const fedUrl = `${BASE_URL}/fed.aspx?lan=1&fed=LTU`;
-
-  const response = await fetch(fedUrl, {
-    headers: {
-      "User-Agent": "ChessTournamentsLT/1.0 (educational project)",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch federation list: ${response.status}`);
-  }
-
-  const html = await response.text();
-  const $ = cheerio.load(html);
   const tournaments: ScrapedTournament[] = [];
+  
+  // Scrape both Lithuania and Latvia
+  const countries = [
+    { code: "LTU", name: "Lithuania" as const },
+    { code: "LAT", name: "Latvia" as const },
+  ];
 
-  // Rows with Lithuania tournaments
-  $("table.CRs2 tr.LTU").each((_, row) => {
-    const cells = $(row).find("td");
-    if (cells.length < 3) return;
+  for (const country of countries) {
+    const fedUrl = `${BASE_URL}/fed.aspx?lan=1&fed=${country.code}`;
 
-    const link = $(cells[1]).find("a");
-    if (!link.length) return;
+    try {
+      const response = await fetch(fedUrl, {
+        headers: {
+          "User-Agent": "ChessTournamentsLT/1.0 (educational project)",
+        },
+      });
 
-    const name = link.text().trim();
-    const href = link.attr("href");
-    if (!name || !href) return;
+      if (!response.ok) {
+        console.error(`Failed to fetch ${country.name} federation list: ${response.status}`);
+        continue;
+      }
 
-    const idMatch = href.match(/tnr(\d+)/);
-    if (!idMatch) return;
+      const html = await response.text();
+      const $ = cheerio.load(html);
 
-    const chessResultsId = `tnr${idMatch[1]}`;
-    const url = href.startsWith("http") ? href : `${BASE_URL}${href}`;
+      // Rows with tournaments for this country
+      $(`table.CRs2 tr.${country.code}`).each((_, row) => {
+        const cells = $(row).find("td");
+        if (cells.length < 3) return;
 
-    // Extract time control from <small> tag, with fallback to cell text if needed
-    let tcText = $(cells[2]).find("small").first().text().trim();
-    if (!tcText) {
-      // Fallback: try extracting from the full cell text if <small> tag is missing
-      const cellText = $(cells[2]).text().trim();
-      const tcMatch = cellText.match(/^(St|Rp|Bz)/i);
-      tcText = tcMatch ? tcMatch[1] : "";
+        const link = $(cells[1]).find("a");
+        if (!link.length) return;
+
+        const name = link.text().trim();
+        const href = link.attr("href");
+        if (!name || !href) return;
+
+        const idMatch = href.match(/tnr(\d+)/);
+        if (!idMatch) return;
+
+        const chessResultsId = `tnr${idMatch[1]}`;
+        const url = href.startsWith("http") ? href : `${BASE_URL}${href}`;
+
+        // Extract time control from <small> tag, with fallback to cell text if needed
+        let tcText = $(cells[2]).find("small").first().text().trim();
+        if (!tcText) {
+          // Fallback: try extracting from the full cell text if <small> tag is missing
+          const cellText = $(cells[2]).text().trim();
+          tcText = cellText.split(/\s+/)[0] || "";
+        }
+
+        const timeControl = parseTimeControl(tcText);
+
+        // Get last update info (for status determination)
+        const lastUpdateText = $(cells[3]).text().trim();
+        const status = lastUpdateText && lastUpdateText !== "-" ? "FINISHED" : "NOT_STARTED";
+
+        tournaments.push({
+          chessResultsId,
+          name,
+          country: country.name,
+          url,
+          timeControl,
+          status: status as "FINISHED" | "NOT_STARTED",
+        });
+      });
+      
+      console.log(`✓ Scraped ${country.name} - found ${tournaments.filter(t => t.country === country.name).length} tournaments`);
+    } catch (error) {
+      console.error(`Error scraping ${country.name}:`, error);
     }
-    const timeControl = parseTimeControl(tcText) as "STANDARD" | "RAPID" | "BLITZ" | "UNKNOWN";
-
-    const statusClass = $(cells[2]).find("div").first().attr("class") ?? "";
-    const status = statusClass.includes("p_17")
-      ? "IN_PROGRESS"
-      : statusClass.includes("p_18")
-      ? "FINISHED"
-      : "NOT_STARTED";
-
-    const { city, startDate } = parseDateFromName(name);
-
-    tournaments.push({
-      chessResultsId,
-      name,
-      city,
-      startDate, // Will be filled from details page if null
-      timeControl,
-      status: status as "NOT_STARTED" | "IN_PROGRESS" | "FINISHED",
-      url,
-    });
-  });
+  }
 
   if (tournaments.length === 0) {
-    console.warn("No tournaments found from federation page. HTML may have changed.");
-  } else {
-    console.log(`Successfully scraped ${tournaments.length} tournaments from federation page`);
-  }
-
-  // Fetch missing dates and player counts from tournament details pages
-  console.log(`Fetching dates and player counts...`);
-  let fetchedCount = 0;
-  for (const tournament of tournaments) {
-    const { date, playerCount } = await fetchTournamentDetails(tournament.url);
-    if (date && !tournament.startDate) {
-      tournament.startDate = date;
-      fetchedCount++;
-    }
-    if (playerCount && !tournament.playerCount) {
-      tournament.playerCount = playerCount;
-    }
-  }
-  if (fetchedCount > 0) {
-    console.log(`Successfully fetched ${fetchedCount} tournament dates from detail pages`);
+    throw new Error("No tournaments found for any country");
   }
 
   return tournaments;

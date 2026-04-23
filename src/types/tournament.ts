@@ -1,6 +1,7 @@
 export interface ScrapedTournament {
   chessResultsId: string;
   name: string;
+  country: "Lithuania" | "Latvia";
   city?: string;
   startDate?: Date;
   endDate?: Date;
@@ -30,6 +31,7 @@ export interface Tournament {
   id: string;
   chessResultsId: string;
   name: string;
+  country: string;
   city: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -47,4 +49,5 @@ export interface Tournament {
 }
 
 export type TimeControlFilter = ("STANDARD" | "RAPID" | "BLITZ")[];
+export type CountryFilter = ("Lithuania" | "Latvia")[];
 export type StatusFilter = "ALL" | "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";

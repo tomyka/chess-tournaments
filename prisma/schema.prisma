@@ -12,6 +12,7 @@ model Tournament {
   id              String            @id @default(cuid())
   chessResultsId  String            @unique // e.g. "tnr1376296"
   name            String
+  country         String            @default("Lithuania") // Lithuania or Latvia
   city            String?
   startDate       DateTime?
   endDate         DateTime?
@@ -32,6 +33,7 @@ model Tournament {
   @@index([startDate])
   @@index([status])
   @@index([timeControl])
+  @@index([country])
 }
 
 model TournamentPlayer {
