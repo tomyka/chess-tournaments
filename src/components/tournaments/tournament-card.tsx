@@ -55,7 +55,7 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5">
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-1">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
               {tournament.name}
@@ -86,7 +86,7 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
             )}
           </div>
         </CardHeader>
-        <CardContent className="pt-0.5">
+        <CardContent className="pt-0">
           <div className="flex flex-wrap gap-1 mb-1">
             <Badge
               variant="secondary"
