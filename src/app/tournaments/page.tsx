@@ -154,47 +154,39 @@ export default function TournamentsPage() {
           {/* Filter Section */}
           <div className="space-y-3">
             {/* Search and main filters */}
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                <div className="flex-1 sm:flex-none">
-                  <TournamentFilters
-                    search={search}
-                    onSearchChange={handleSearchChange}
-                    timeControl={timeControl}
-                    onTimeControlChange={handleTimeControlChange}
-                  />
-                </div>
-                <div className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
-                  <DatePickerV2
-                    selectedDateStart={dateStart}
-                    selectedDateEnd={dateEnd}
-                    onDateRangeSelect={handleDateRangeChange}
-                  />
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                      Sort by:
-                    </label>
-                    <select
-                      id="sort-select"
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as SortOption)}
-                      className="h-9 px-3 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                    >
-                      <option value="date-asc">Upcoming First</option>
-                      <option value="date-desc">Recent First</option>
-                      <option value="rating-desc">Highest Rating</option>
-                      <option value="players-desc">Most Players</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Country filter on second row */}
-              <div className="flex items-center">
-                <CountryFilter
-                  selected={country}
-                  onChange={setCountry}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-wrap">
+              <div className="flex-1 sm:flex-none">
+                <TournamentFilters
+                  search={search}
+                  onSearchChange={handleSearchChange}
+                  timeControl={timeControl}
+                  onTimeControlChange={handleTimeControlChange}
                 />
+              </div>
+              <CountryFilter
+                selected={country}
+                onChange={setCountry}
+              />
+              <DatePickerV2
+                selectedDateStart={dateStart}
+                selectedDateEnd={dateEnd}
+                onDateRangeSelect={handleDateRangeChange}
+              />
+              <div className="flex items-center gap-2">
+                <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Sort by:
+                </label>
+                <select
+                  id="sort-select"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="h-9 px-3 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                >
+                  <option value="date-asc">Upcoming First</option>
+                  <option value="date-desc">Recent First</option>
+                  <option value="rating-desc">Highest Rating</option>
+                  <option value="players-desc">Most Players</option>
+                </select>
               </div>
             </div>
 

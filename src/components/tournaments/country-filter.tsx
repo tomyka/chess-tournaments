@@ -24,17 +24,13 @@ export function CountryFilter({ selected, onChange }: CountryFilterProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <Globe className="h-4 w-4 text-gray-600" />
+      <Globe className="h-4 w-4 text-muted-foreground" />
       <div className="flex gap-2 flex-wrap">
         {countries.map((country) => (
           <Badge
             key={country.value}
             variant={selected.includes(country.value as "Lithuania" | "Latvia") ? "default" : "outline"}
-            className={`cursor-pointer transition-all ${
-              selected.includes(country.value as "Lithuania" | "Latvia")
-                ? "bg-amber-600 hover:bg-amber-700"
-                : "hover:bg-gray-100"
-            }`}
+            className="cursor-pointer transition-all hover:scale-105 text-xs px-2 py-0.5 h-9 flex items-center"
             onClick={() => toggleCountry(country.value as "Lithuania" | "Latvia")}
           >
             {country.label}
