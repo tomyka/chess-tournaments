@@ -13,10 +13,11 @@ import {
   addMonths,
   subMonths,
   isWithinInterval,
+  isBefore,
+  isAfter,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 interface DatePickerCalendarProps {
   selectedDateStart: string;
@@ -37,25 +38,19 @@ export function DatePickerCalendar({
     selectedDateEnd ? new Date(selectedDateEnd) : null
   );
 
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const calendarStart = startOfWeek(monthStart);
-  const calendarEnd = endOfWeek(monthEnd);
-
-  const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-
   const handleDayClick = (day: Date) => {
-    if (!tempStart || (tempStart && tempEnd)) {
-      // Start new range
+    if (!tempStart) {
       setTempStart(day);
       setTempEnd(null);
-    } else if (day < tempStart) {
-      // Click before start: swap
-      setTempEnd(tempStart);
-      setTempStart(day);
+    } else if (!tempEnd) {
+      if (isBefore(day, tempStart)) {
+        setTempStart(day);
+      } else {
+        setTempEnd(day);
+      }
     } else {
-      // Click after start: set end
-      setTempEnd(day);
+      setTempStart(day);
+      setTempEnd(null);
     }
   };
 
@@ -79,102 +74,145 @@ export function DatePickerCalendar({
     return isWithinInterval(day, { start: tempStart, end: tempEnd });
   };
 
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const renderCalendar = (date: Date) => {
+    const monthStart = startOfMonth(date);
+    const monthEnd = endOfMonth(date);
+    const calendarStart = startOfWeek(monthStart);
+    const calendarEnd = endOfWeek(monthEnd);
+    const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+    const weekDays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+
+    return (
+      <div className="w-full sm:w-80">
+        {/* Month/Year Header */}
+        <div className="mb-4 text-center">
+          <h3 className="text-lg font-semibold text-gray-900">
+            {format(date, "MMMM yyyy")}
+          </h3>
+        </div>
+
+        {/* Weekday Headers */}
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {weekDays.map((day) => (
+            <div
+              key={day}
+              className="text-center text-xs font-semibold text-gray-600 py-2"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Days Grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((day) => {
+            const inMonth = isSameMonth(day, date);
+            const isStart = tempStart && isSameDay(day, tempStart);
+            const isEnd = tempEnd && isSameDay(day, tempEnd);
+            const inRange = isDateInRange(day);
+            const isToday = isSameDay(day, new Date());
+
+            let bgColor = "";
+            let textColor = "";
+
+            if (isStart || isEnd) {
+              bgColor = "bg-blue-600";
+              textColor = "text-white";
+            } else if (inRange) {
+              bgColor = "bg-blue-100";
+              textColor = "text-gray-900";
+            } else if (!inMonth) {
+              bgColor = "";
+              textColor = "text-gray-300";
+            } else if (isToday) {
+              bgColor = "";
+              textColor = "text-blue-600 font-semibold";
+            } else {
+              bgColor = "hover:bg-gray-100";
+              textColor = "text-gray-700";
+            }
+
+            return (
+              <button
+                key={day.toString()}
+                onClick={() => inMonth && handleDayClick(day)}
+                disabled={!inMonth}
+                className={`
+                  h-10 text-sm transition-all rounded-md
+                  ${bgColor} ${textColor}
+                  ${inMonth && !isStart && !isEnd && !inRange ? "cursor-pointer hover:bg-gray-100" : ""}
+                  ${!inMonth ? "cursor-default" : ""}
+                  ${(isStart || isEnd) && inRange && tempStart !== tempEnd ? "rounded-none" : ""}
+                  ${isStart ? "rounded-l-md" : ""}
+                  ${isEnd ? "rounded-r-md" : ""}
+                `}
+              >
+                {format(day, "d")}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const nextMonth = addMonths(currentDate, 1);
 
   return (
-    <div className="w-full space-y-4 rounded-lg border bg-card p-4">
-      {/* Month Navigation */}
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">{format(currentDate, "MMMM yyyy")}</h3>
-        <div className="flex gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+    <div className="w-full bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-200 p-6 shadow-sm">
+      {/* Navigation */}
+      <div className="flex items-center justify-between mb-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+          className="h-9 w-9 p-0"
+        >
+          <ChevronLeft className="h-5 w-5 text-gray-600" />
+        </Button>
+        <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+          {selectedDateStart && selectedDateEnd
+            ? `${format(new Date(selectedDateStart), "MMM d")} - ${format(new Date(selectedDateEnd), "MMM d, yyyy")}`
+            : selectedDateStart
+            ? `From ${format(new Date(selectedDateStart), "MMM d, yyyy")}`
+            : "Select dates"}
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+          className="h-9 w-9 p-0"
+        >
+          <ChevronRight className="h-5 w-5 text-gray-600" />
+        </Button>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-2">
-        {/* Week day headers */}
-        {weekDays.map((day) => (
-          <div key={day} className="text-center text-sm font-medium text-muted-foreground">
-            {day}
-          </div>
-        ))}
-
-        {/* Days */}
-        {days.map((day) => {
-          const inMonth = isSameMonth(day, currentDate);
-          const isStart = tempStart && isSameDay(day, tempStart);
-          const isEnd = tempEnd && isSameDay(day, tempEnd);
-          const inRange = isDateInRange(day);
-
-          return (
-            <button
-              key={day.toString()}
-              onClick={() => inMonth && handleDayClick(day)}
-              disabled={!inMonth}
-              className={`
-                aspect-square rounded text-sm font-medium transition-colors
-                ${!inMonth ? "text-muted-foreground/30" : "hover:bg-accent cursor-pointer"}
-                ${isStart || isEnd ? "bg-primary text-primary-foreground" : ""}
-                ${inRange && !isStart && !isEnd ? "bg-primary/20" : ""}
-                ${inMonth && !inRange ? "hover:bg-accent" : ""}
-              `}
-            >
-              {format(day, "d")}
-            </button>
-          );
-        })}
+      {/* Two Calendars */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
+        {renderCalendar(currentDate)}
+        {renderCalendar(nextMonth)}
       </div>
-
-      {/* Selected Range Display */}
-      {(tempStart || tempEnd) && (
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">
-            {tempStart ? format(tempStart, "MMM d, yyyy") : "Start"}
-          </Badge>
-          {tempEnd && (
-            <>
-              <span className="text-sm text-muted-foreground">to</span>
-              <Badge variant="secondary">{format(tempEnd, "MMM d, yyyy")}</Badge>
-            </>
-          )}
-        </div>
-      )}
 
       {/* Action Buttons */}
-      <div className="flex gap-2 pt-2">
-        <Button
-          size="sm"
-          onClick={handleApply}
-          disabled={!tempStart}
-          className="flex-1"
-        >
-          Apply
-        </Button>
-        {tempStart && (
+      <div className="flex gap-3 pt-4 border-t border-gray-200">
+        {(tempStart || tempEnd) && (
           <Button
-            size="sm"
             variant="outline"
+            size="sm"
             onClick={handleClear}
             className="flex-1"
           >
-            <X className="mr-1 h-4 w-4" />
             Clear
           </Button>
         )}
+        <Button
+          onClick={handleApply}
+          disabled={!tempStart}
+          size="sm"
+          className="flex-1 bg-blue-600 hover:bg-blue-700"
+        >
+          Done
+        </Button>
       </div>
     </div>
   );
