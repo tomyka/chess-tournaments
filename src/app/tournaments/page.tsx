@@ -4,9 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { TournamentCard } from "@/components/tournaments/tournament-card";
 import { TournamentFilters } from "@/components/tournaments/tournament-filters";
 import { TournamentListSkeleton } from "@/components/tournaments/tournament-skeleton";
-import { TournamentCalendar } from "@/components/tournaments/tournament-calendar";
 import { DatePickerV2 } from "@/components/tournaments/date-picker-v2";
-import { ViewToggle } from "@/components/tournaments/view-toggle";
 import { LoadMoreButton } from "@/components/tournaments/load-more-button";
 import { Button } from "@/components/ui/button";
 import { Trophy } from "lucide-react";
@@ -35,7 +33,6 @@ export default function TournamentsPage() {
   const [dateStart, setDateStart] = useState<string>("");
   const [dateEnd, setDateEnd] = useState<string>("");
   const [page, setPage] = useState(1);
-  const [view, setView] = useState<"grid" | "calendar">("grid");
   
   const fetchTournaments = useCallback(async (pageNum: number = 1) => {
     const isFirstPage = pageNum === 1;
@@ -52,13 +49,8 @@ export default function TournamentsPage() {
       if (dateStart) params.set("dateStart", dateStart);
       if (dateEnd) params.set("dateEnd", dateEnd);
       
-      if (view === "calendar") {
-        params.set("limit", "1000");
-        params.set("page", "1");
-      } else {
-        params.set("page", pageNum.toString());
-        params.set("limit", "18");
-      }
+      params.set("page", pageNum.toString());
+      params.set("limit", "18");
 
       const res = await fetch(`/api/tournaments?${params}`);
       if (!res.ok) throw new Error("Failed to fetch");
@@ -80,7 +72,7 @@ export default function TournamentsPage() {
         setLoadingMore(false);
       }
     }
-  }, [search, timeControl, dateStart, dateEnd, view]);
+  }, [search, timeControl, dateStart, dateEnd]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -88,7 +80,7 @@ export default function TournamentsPage() {
       setAllTournaments([]);
     }, 300);
     return () => clearTimeout(debounce);
-  }, [search, timeControl, dateStart, dateEnd, view]);
+  }, [search, timeControl, dateStart, dateEnd]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -125,7 +117,7 @@ export default function TournamentsPage() {
   }, []);
 
   const hasMore = data ? page < data.pagination.totalPages : false;
-  const displayTournaments = view === "calendar" ? data?.tournaments || [] : allTournaments;
+  const displayTournaments = allTournaments;
 
   return (
     <div className="min-h-screen bg-white">
@@ -142,29 +134,23 @@ export default function TournamentsPage() {
             </div>
 
             {/* All Filters in One Row */}
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-              <div className="flex-1">
-                <TournamentFilters
-                  search={search}
-                  onSearchChange={handleSearchChange}
-                  timeControl={timeControl}
-                  onTimeControlChange={handleTimeControlChange}
-                />
-              </div>
+            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+              <TournamentFilters
+                search={search}
+                onSearchChange={handleSearchChange}
+                timeControl={timeControl}
+                onTimeControlChange={handleTimeControlChange}
+              />
 
               <DatePickerV2
                 selectedDateStart={dateStart}
                 selectedDateEnd={dateEnd}
                 onDateRangeSelect={handleDateRangeChange}
               />
-
-              <ViewToggle view={view} onViewChange={setView} />
             </div>
           </div>
         </div>
       </div>
-
-      {/* Mobile Filter Drawer */}
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -197,32 +183,21 @@ export default function TournamentsPage() {
               )}
             </div>
 
-            {view === "calendar" ? (
-              <TournamentCalendar
-                tournaments={displayTournaments}
-                selectedDateStart={dateStart}
-                selectedDateEnd={dateEnd}
-                onDateRangeSelect={handleDateRangeChange}
-              />
-            ) : (
-              <>
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {displayTournaments.map((tournament, index) => (
-                    <TournamentCard
-                      key={tournament.id}
-                      tournament={tournament}
-                      index={index}
-                    />
-                  ))}
-                </div>
-
-                <LoadMoreButton
-                  onClick={handleLoadMore}
-                  isLoading={loadingMore}
-                  hasMore={hasMore}
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {displayTournaments.map((tournament, index) => (
+                <TournamentCard
+                  key={tournament.id}
+                  tournament={tournament}
+                  index={index}
                 />
-              </>
-            )}
+              ))}
+            </div>
+
+            <LoadMoreButton
+              onClick={handleLoadMore}
+              isLoading={loadingMore}
+              hasMore={hasMore}
+            />
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">

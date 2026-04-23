@@ -28,12 +28,12 @@ export function TournamentFilters({
   onTimeControlChange,
 }: TournamentFiltersProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-      {/* Search Bar */}
-      <div className="relative flex-1 sm:min-w-[200px]">
+    <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+      {/* Search Bar - Narrow */}
+      <div className="relative w-full sm:w-48">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search tournaments..."
+          placeholder="Search..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 h-9 text-sm"
@@ -41,7 +41,7 @@ export function TournamentFilters({
       </div>
 
       {/* Time Control Filters */}
-      <div className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+      <div className="flex gap-2 items-center flex-wrap">
         {timeControlOptions.map((option) => (
           <Badge
             key={option.value}

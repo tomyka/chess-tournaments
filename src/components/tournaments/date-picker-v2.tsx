@@ -178,16 +178,15 @@ export function DatePickerV2({
       {/* Trigger Button - Compact version for filter row */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg bg-white hover:border-gray-400 transition-all cursor-pointer whitespace-nowrap"
+        className="flex items-center gap-2 px-3 py-2.5 border border-gray-300 rounded-lg bg-white hover:border-gray-400 transition-all cursor-pointer whitespace-nowrap h-9"
       >
         <div className="text-sm">
-          <div className="text-xs font-semibold text-gray-600">Kada</div>
           <div className="font-semibold text-gray-900">
             {selectedDateStart && selectedDateEnd
               ? `${format(new Date(selectedDateStart), "MMM d")} - ${format(new Date(selectedDateEnd), "MMM d")}`
               : selectedDateStart
               ? format(new Date(selectedDateStart), "MMM d")
-              : "—"}
+              : "Nuo-Iki"}
           </div>
         </div>
 
