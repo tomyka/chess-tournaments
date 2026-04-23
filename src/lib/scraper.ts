@@ -7,10 +7,9 @@ const BASE_URL = "https://chess-results.com";
 const SEARCH_URL = "https://s3.chess-results.com/turniersuche.aspx?SNode=S0";
 
 /**
- * Fetch the tournament date from its details page
- * Looks for pattern: "Date" label followed by "YYYY/MM/DD" format
+ * Fetch tournament details including player count and other info
  */
-async function fetchTournamentDate(url: string): Promise<Date | undefined> {
+async function fetchTournamentDetails(url: string): Promise<{ playerCount?: number; date?: Date }> {
   try {
     const response = await fetch(url, {
       headers: {
@@ -18,18 +17,32 @@ async function fetchTournamentDate(url: string): Promise<Date | undefined> {
       },
     });
     
-    if (!response.ok) return undefined;
+    if (!response.ok) return {};
     
     const html = await response.text();
     const $ = cheerio.load(html);
     
-    // Look for "Date" row - pattern: "Date" label in one cell, date in format YYYY/MM/DD
+    const result: { playerCount?: number; date?: Date } = {};
+    
+    // Look for player count - pattern: "Players:" or "Participants:" followed by number
+    let playerCountText = "";
+    $("td, div, p").each((_, elem) => {
+      const text = $(elem).text();
+      if (text.match(/Players|Participants|Participants:?/i)) {
+        playerCountText = text;
+      }
+    });
+    
+    if (playerCountText) {
+      const match = playerCountText.match(/(\d+)/);
+      if (match) {
+        result.playerCount = parseInt(match[1], 10);
+      }
+    }
+    
+    // Look for date pattern YYYY/MM/DD
     const datePattern = /(\d{4})\/(\d{2})\/(\d{2})/;
-    
-    // Try to find it in the page
     let dateMatch: RegExpMatchArray | null = null;
-    
-    // Scan all table cells for the date pattern
     $("td, div").each((_, elem) => {
       const text = $(elem).text();
       const match = text.match(datePattern);
@@ -41,15 +54,24 @@ async function fetchTournamentDate(url: string): Promise<Date | undefined> {
     if (dateMatch) {
       const date = new Date(`${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`);
       if (!isNaN(date.getTime())) {
-        return date;
+        result.date = date;
       }
     }
     
-    return undefined;
+    return result;
   } catch (error) {
-    console.error(`Failed to fetch date for ${url}:`, error);
-    return undefined;
+    console.error(`Failed to fetch details for ${url}:`, error);
+    return {};
   }
+}
+
+/**
+ * Fetch the tournament date from its details page
+ * Looks for pattern: "Date" label followed by "YYYY/MM/DD" format
+ */
+async function fetchTournamentDate(url: string): Promise<Date | undefined> {
+  const { date } = await fetchTournamentDetails(url);
+  return date;
 }
 
 function parseDateFromName(name: string): { city?: string; startDate?: Date } {
@@ -346,16 +368,17 @@ async function scrapeFederationPageFallback(): Promise<ScrapedTournament[]> {
     console.log(`Successfully scraped ${tournaments.length} tournaments from federation page`);
   }
 
-  // Fetch missing dates from tournament details pages
-  console.log(`Fetching dates for tournaments without dates...`);
+  // Fetch missing dates and player counts from tournament details pages
+  console.log(`Fetching dates and player counts...`);
   let fetchedCount = 0;
   for (const tournament of tournaments) {
-    if (!tournament.startDate) {
-      const date = await fetchTournamentDate(tournament.url);
-      if (date) {
-        tournament.startDate = date;
-        fetchedCount++;
-      }
+    const { date, playerCount } = await fetchTournamentDetails(tournament.url);
+    if (date && !tournament.startDate) {
+      tournament.startDate = date;
+      fetchedCount++;
+    }
+    if (playerCount && !tournament.playerCount) {
+      tournament.playerCount = playerCount;
     }
   }
   if (fetchedCount > 0) {
