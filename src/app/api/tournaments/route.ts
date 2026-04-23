@@ -20,14 +20,20 @@ export async function GET(request: NextRequest) {
     if (status && status !== "ALL") {
       where.status = status;
     }
+    
+    // Build AND conditions
+    const andConditions: Record<string, unknown>[] = [];
+    
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { city: { contains: search, mode: "insensitive" } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { city: { contains: search, mode: "insensitive" } },
+        ],
+      });
     }
 
-    // Date range filtering
+    // Date range filtering - include tournaments with null startDate
     if (dateStart || dateEnd) {
       const filterRange: Record<string, unknown> = {};
       if (dateStart) {
@@ -38,7 +44,17 @@ export async function GET(request: NextRequest) {
         endDate.setHours(23, 59, 59, 999);
         filterRange.lte = endDate;
       }
-      where.startDate = filterRange;
+      andConditions.push({
+        OR: [
+          { startDate: filterRange },
+          { startDate: null }
+        ],
+      });
+    }
+
+    // Combine all AND conditions
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     const [tournaments, total] = await Promise.all([

@@ -264,7 +264,14 @@ async function scrapeFederationPageFallback(): Promise<ScrapedTournament[]> {
     const chessResultsId = `tnr${idMatch[1]}`;
     const url = href.startsWith("http") ? href : `${BASE_URL}${href}`;
 
-    const tcText = $(cells[2]).find("small").first().text().trim();
+    // Extract time control from <small> tag, with fallback to cell text if needed
+    let tcText = $(cells[2]).find("small").first().text().trim();
+    if (!tcText) {
+      // Fallback: try extracting from the full cell text if <small> tag is missing
+      const cellText = $(cells[2]).text().trim();
+      const tcMatch = cellText.match(/^(St|Rp|Bz)/i);
+      tcText = tcMatch ? tcMatch[1] : "";
+    }
     const timeControl = parseTimeControl(tcText) as "STANDARD" | "RAPID" | "BLITZ" | "UNKNOWN";
 
     const statusClass = $(cells[2]).find("div").first().attr("class") ?? "";
@@ -286,6 +293,12 @@ async function scrapeFederationPageFallback(): Promise<ScrapedTournament[]> {
       url,
     });
   });
+
+  if (tournaments.length === 0) {
+    console.warn("No tournaments found from federation page. HTML may have changed.");
+  } else {
+    console.log(`Successfully scraped ${tournaments.length} tournaments from federation page`);
+  }
 
   return tournaments;
 }
