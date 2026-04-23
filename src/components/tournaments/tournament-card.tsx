@@ -55,7 +55,7 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
               {tournament.name}
@@ -71,34 +71,34 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
             </a>
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex flex-wrap gap-1.5 mb-3">
+        <CardContent className="pt-2">
+          <div className="flex flex-wrap gap-1 mb-2">
             <Badge
               variant="secondary"
-              className={timeControlColors[tournament.timeControl]}
+              className={`${timeControlColors[tournament.timeControl]} text-xs`}
             >
               <Clock className="mr-1 h-3 w-3" />
               {timeControlLabels[tournament.timeControl]}
             </Badge>
             <Badge
               variant="secondary"
-              className={statusColors[tournament.status]}
+              className={`${statusColors[tournament.status]} text-xs`}
             >
               {statusLabels[tournament.status]}
             </Badge>
           </div>
 
-          <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+          <div className="flex flex-col gap-1 text-xs text-muted-foreground">
             {formatDateRange(tournament.startDate, tournament.endDate) && (
               <div className="flex items-center gap-1.5">
                 <Calendar className="h-3 w-3 shrink-0" />
-                <span>{formatDateRange(tournament.startDate, tournament.endDate)}</span>
+                <span className="truncate">{formatDateRange(tournament.startDate, tournament.endDate)}</span>
               </div>
             )}
             {tournament.city && (
               <div className="flex items-center gap-1.5">
                 <MapPin className="h-3 w-3 shrink-0" />
-                <span>{tournament.city}</span>
+                <span className="truncate">{tournament.city}</span>
               </div>
             )}
             {tournament.playerCount && (
