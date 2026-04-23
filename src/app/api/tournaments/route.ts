@@ -7,6 +7,8 @@ export async function GET(request: NextRequest) {
     const timeControl = searchParams.get("timeControl");
     const status = searchParams.get("status");
     const search = searchParams.get("search");
+    const dateStart = searchParams.get("dateStart");
+    const dateEnd = searchParams.get("dateEnd");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
 
@@ -23,6 +25,20 @@ export async function GET(request: NextRequest) {
         { name: { contains: search, mode: "insensitive" } },
         { city: { contains: search, mode: "insensitive" } },
       ];
+    }
+
+    // Date range filtering
+    if (dateStart || dateEnd) {
+      const filterRange: Record<string, unknown> = {};
+      if (dateStart) {
+        filterRange.gte = new Date(dateStart);
+      }
+      if (dateEnd) {
+        const endDate = new Date(dateEnd);
+        endDate.setHours(23, 59, 59, 999);
+        filterRange.lte = endDate;
+      }
+      where.startDate = filterRange;
     }
 
     const [tournaments, total] = await Promise.all([

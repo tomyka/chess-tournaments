@@ -4,15 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { TimeControlFilter, StatusFilter } from "@/types/tournament";
+import { DateRangePicker } from "./date-range-picker";
+import type { TimeControlFilter } from "@/types/tournament";
 
 interface TournamentFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
   timeControl: TimeControlFilter;
   onTimeControlChange: (value: TimeControlFilter) => void;
-  status: StatusFilter;
-  onStatusChange: (value: StatusFilter) => void;
+  dateStart: string | null;
+  dateEnd: string | null;
+  onDateRangeChange: (start: string | null, end: string | null) => void;
 }
 
 const timeControlOptions: { value: TimeControlFilter; label: string }[] = [
@@ -22,22 +24,16 @@ const timeControlOptions: { value: TimeControlFilter; label: string }[] = [
   { value: "BLITZ", label: "Blitz" },
 ];
 
-const statusOptions: { value: StatusFilter; label: string }[] = [
-  { value: "ALL", label: "All" },
-  { value: "NOT_STARTED", label: "Upcoming" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "FINISHED", label: "Finished" },
-];
-
 export function TournamentFilters({
   search,
   onSearchChange,
   timeControl,
   onTimeControlChange,
-  status,
-  onStatusChange,
+  dateStart,
+  dateEnd,
+  onDateRangeChange,
 }: TournamentFiltersProps) {
-  const hasFilters = search || timeControl !== "ALL" || status !== "ALL";
+  const hasFilters = search || timeControl !== "ALL" || dateStart || dateEnd;
 
   return (
     <div className="space-y-4">
@@ -71,25 +67,14 @@ export function TournamentFilters({
             ))}
           </div>
         </div>
-
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Status
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {statusOptions.map((option) => (
-              <Badge
-                key={option.value}
-                variant={status === option.value ? "default" : "outline"}
-                className="cursor-pointer transition-all hover:scale-105"
-                onClick={() => onStatusChange(option.value)}
-              >
-                {option.label}
-              </Badge>
-            ))}
-          </div>
-        </div>
       </div>
+
+      {/* Date Range Picker */}
+      <DateRangePicker
+        startDate={dateStart}
+        endDate={dateEnd}
+        onDateRangeChange={onDateRangeChange}
+      />
 
       {/* Clear filters */}
       {hasFilters && (
@@ -99,7 +84,7 @@ export function TournamentFilters({
           onClick={() => {
             onSearchChange("");
             onTimeControlChange("ALL");
-            onStatusChange("ALL");
+            onDateRangeChange(null, null);
           }}
           className="text-xs"
         >
