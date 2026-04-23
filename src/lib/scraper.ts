@@ -42,9 +42,9 @@ async function fetchTournamentDetails(url: string): Promise<{ playerCount?: numb
       }
     }
     
-    // Count players by counting rows with class="CRg2 LTU" in the standings table
-    // These are the actual participant rows from the federation
-    const playerRows = cheerio.load(html)('tr.CRg2.LTU');
+    // Count players by counting rows with class="CRg1" or "CRg2" (alternating row colors in standings table)
+    // This includes all participants regardless of federation
+    const playerRows = cheerio.load(html)('tr.CRg1, tr.CRg2');
     if (playerRows.length > 0) {
       result.playerCount = playerRows.length;
     }
