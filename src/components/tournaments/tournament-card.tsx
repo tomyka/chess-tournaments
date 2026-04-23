@@ -20,18 +20,6 @@ const timeControlLabels: Record<string, string> = {
   UNKNOWN: "Unknown",
 };
 
-const statusColors: Record<string, string> = {
-  NOT_STARTED: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  IN_PROGRESS: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  FINISHED: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-};
-
-const statusLabels: Record<string, string> = {
-  NOT_STARTED: "Upcoming",
-  IN_PROGRESS: "In Progress",
-  FINISHED: "Finished",
-};
-
 function formatDateRange(startDate: string | null, endDate: string | null): string | null {
   if (!startDate) return null;
   const fmt = (d: string) =>
@@ -40,6 +28,19 @@ function formatDateRange(startDate: string | null, endDate: string | null): stri
   if (!endDate) return start;
   const end = fmt(endDate);
   return start === end ? start : `${start} – ${end}`;
+}
+
+function getStatusColor(status: string): string {
+  switch (status) {
+    case "NOT_STARTED":
+      return "bg-blue-400";
+    case "IN_PROGRESS":
+      return "bg-green-400";
+    case "FINISHED":
+      return "bg-purple-400";
+    default:
+      return "bg-gray-400";
+  }
 }
 
 interface TournamentCardProps {
@@ -54,10 +55,12 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
-      <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5">
+      <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5 relative overflow-hidden">
+        {/* Status indicator */}
+        <div className={`absolute top-0 right-0 h-1 w-full ${getStatusColor(tournament.status)}`} />
         <CardHeader className="pb-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="font-bold text-base leading-tight line-clamp-2 group-hover:text-primary transition-colors">
               {tournament.name}
             </h3>
             <a
@@ -71,7 +74,7 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
             </a>
           </div>
           {/* Type, player count, and rating in one row */}
-          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+          <div className="text-xs text-muted-foreground mt-1.5 flex items-center gap-2 flex-wrap">
             <Badge
               variant="secondary"
               className={`${timeControlColors[tournament.timeControl]} text-xs`}
@@ -82,13 +85,13 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
             {tournament.playerCount && (
               <>
                 <Users className="h-3 w-3 shrink-0" />
-                <span>{tournament.playerCount} players</span>
+                <span className="font-medium">{tournament.playerCount}</span>
               </>
             )}
             {tournament.averageRating && (
               <>
                 {tournament.playerCount && <span>•</span>}
-                <span>Rating-Ø: {tournament.averageRating}</span>
+                <span className="font-medium">{tournament.averageRating}</span>
               </>
             )}
           </div>
