@@ -70,11 +70,18 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
               <ExternalLink className="h-4 w-4" />
             </a>
           </div>
-          {/* Player count and average rating below title */}
-          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+          {/* Type, player count, and rating in one row */}
+          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+            <Badge
+              variant="secondary"
+              className={`${timeControlColors[tournament.timeControl]} text-xs`}
+            >
+              <Clock className="mr-1 h-3 w-3" />
+              {timeControlLabels[tournament.timeControl]}
+            </Badge>
             {tournament.playerCount && (
               <>
-                <Users className="h-3 w-3" />
+                <Users className="h-3 w-3 shrink-0" />
                 <span>{tournament.playerCount} players</span>
               </>
             )}
@@ -87,22 +94,6 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="flex flex-wrap gap-1 mb-1">
-            <Badge
-              variant="secondary"
-              className={`${timeControlColors[tournament.timeControl]} text-xs`}
-            >
-              <Clock className="mr-1 h-3 w-3" />
-              {timeControlLabels[tournament.timeControl]}
-            </Badge>
-            <Badge
-              variant="secondary"
-              className={`${statusColors[tournament.status]} text-xs`}
-            >
-              {statusLabels[tournament.status]}
-            </Badge>
-          </div>
-
           <div className="flex flex-col gap-1 text-xs text-muted-foreground">
             {/* Date and Location in one row */}
             <div className="flex items-center gap-1.5 flex-wrap">
