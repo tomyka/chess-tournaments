@@ -48,39 +48,45 @@ export async function POST(request: Request) {
       updated++;
     }
 
-    // Fetch details (accurate dates, rounds, organizer, average rating) for tournaments missing these.
-    // Capped at 15/run in batches of 5 to stay within serverless timeout.
-    const needsDetails = await prisma.tournament.findMany({
-      where: {
-        OR: [
-          { startDate: null },
-          { averageRating: null }
-        ]
-      },
-      select: { chessResultsId: true, url: true },
-      take: 15,
+    // Fetch details for ALL tournaments to ensure complete data
+    // This should run for every tournament on every scrape
+    const allTournaments = await prisma.tournament.findMany({
+      select: { chessResultsId: true, url: true, name: true },
+      take: 50, // Process up to 50 per run
     });
 
+    if (allTournaments.length > 0) {
+      console.log(`Fetching details for ${allTournaments.length} tournaments`);
+    }
+
     const BATCH_SIZE = 5;
-    for (let i = 0; i < needsDetails.length; i += BATCH_SIZE) {
-      const batch = needsDetails.slice(i, i + BATCH_SIZE);
+    let detailsUpdated = 0;
+    
+    for (let i = 0; i < allTournaments.length; i += BATCH_SIZE) {
+      const batch = allTournaments.slice(i, i + BATCH_SIZE);
       await Promise.all(
         batch.map(async (t) => {
           try {
             const details = await scrapeTournamentDetails(t.url);
-            await prisma.tournament.update({
-              where: { chessResultsId: t.chessResultsId },
-              data: {
-                startDate: details.startDate ?? null,
-                endDate: details.endDate ?? null,
-                roundCount: details.roundCount ?? null,
-                organizer: details.organizer ?? null,
-                chiefArbiter: details.chiefArbiter ?? null,
-                averageRating: details.averageRating ?? null,
-              },
-            });
-          } catch {
-            // Non-fatal: skip this tournament's details on failure
+            
+            // Only update if we got new data
+            if (details.playerCount || details.averageRating || details.startDate) {
+              await prisma.tournament.update({
+                where: { chessResultsId: t.chessResultsId },
+                data: {
+                  startDate: details.startDate ?? undefined,
+                  endDate: details.endDate ?? undefined,
+                  roundCount: details.roundCount ?? undefined,
+                  organizer: details.organizer ?? undefined,
+                  chiefArbiter: details.chiefArbiter ?? undefined,
+                  averageRating: details.averageRating ?? undefined,
+                  playerCount: details.playerCount ?? undefined,
+                },
+              });
+              detailsUpdated++;
+            }
+          } catch (error) {
+            console.error(`Failed to fetch details for ${t.name}:`, error);
           }
         })
       );

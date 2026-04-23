@@ -386,73 +386,89 @@ export async function scrapeTournamentDetails(
     ? url
     : `${url}${url.includes("?") ? "&" : "?"}turdet=YES`;
 
-  const response = await fetch(detailUrl, {
-    headers: {
-      "User-Agent": "ChessTournamentsLT/1.0 (educational project)",
-    },
-  });
+  try {
+    const response = await fetch(detailUrl, {
+      headers: {
+        "User-Agent": "ChessTournamentsLT/1.0 (educational project)",
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch tournament details: ${response.status}`);
-  }
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
-  const html = await response.text();
-  const $ = cheerio.load(html);
+    const html = await response.text();
+    const $ = cheerio.load(html);
 
-  const details: Partial<ScrapedTournament> = {};
+    const details: Partial<ScrapedTournament> = {};
 
-  // Details table uses plain <td class="CR"> rows with label/value pairs
-  $("table tr").each((_, row) => {
-    const cells = $(row).find("td");
-    if (cells.length < 2) return;
+    // Iterate through ALL table rows looking for label/value pairs
+    $("tr").each((_, row) => {
+      const cells = $(row).find("td");
+      if (cells.length < 2) return;
 
-    const label = $(cells[0]).text().trim().toLowerCase();
-    const value = $(cells[1]).text().trim();
+      const label = $(cells[0]).text().trim().toLowerCase();
+      const value = $(cells[1]).text().trim();
 
-    const labelLower = label.toLowerCase();
-    if (labelLower.includes("date")) {
-      // Format: "2026/04/25" or "2026/04/25 .. 2026/04/27"
-      const dateMatches = value.match(/(\d{4}\/\d{2}\/\d{2})/g);
-      if (dateMatches) {
-        const d = new Date(dateMatches[0].replace(/\//g, "-"));
-        if (!isNaN(d.getTime())) details.startDate = d;
-        if (dateMatches.length > 1) {
-          const e = new Date(dateMatches[1].replace(/\//g, "-"));
-          if (!isNaN(e.getTime())) details.endDate = e;
+      // DATE: Look for any row with "date"
+      if (label.includes("date") && value.match(/\d{4}\/\d{2}\/\d{2}/)) {
+        const dateMatches = value.match(/(\d{4})\/(\d{2})\/(\d{2})/g);
+        if (dateMatches) {
+          const d = new Date(dateMatches[0].replace(/\//g, "-"));
+          if (!isNaN(d.getTime())) details.startDate = d;
+          if (dateMatches.length > 1) {
+            const e = new Date(dateMatches[1].replace(/\//g, "-"));
+            if (!isNaN(e.getTime())) details.endDate = e;
+          }
         }
       }
-    }
-    // Match "Rating-Ø / Average age" or similar patterns with rating in the label
-    if ((labelLower.includes("rating") && labelLower.includes("average")) || 
-        /rating.*average|average.*rating/i.test(label)) {
-      // Format: "1761 / 35" - extract first number as average rating
-      const ratingMatch = value.match(/(\d+)/);
-      if (ratingMatch) {
-        details.averageRating = parseInt(ratingMatch[1], 10);
+
+      // AVERAGE RATING: Look for "rating" in label (handles "Rating-Ø / Average age", etc.)
+      if (label.includes("rating") && value.match(/\d+/)) {
+        const ratingMatch = value.match(/(\d+)/);
+        if (ratingMatch) {
+          details.averageRating = parseInt(ratingMatch[1], 10);
+        }
+      }
+
+      if (label.includes("chief arbiter")) {
+        details.chiefArbiter = value;
+      }
+
+      if (label.includes("organizer")) {
+        details.organizer = value.split(",")[0].trim();
+      }
+
+      if (label.includes("number of rounds")) {
+        const roundsMatch = value.match(/(\d+)/);
+        if (roundsMatch) {
+          details.roundCount = parseInt(roundsMatch[1], 10);
+        }
+      }
+    });
+
+    // PLAYER COUNT: From standings table (finished tournaments)
+    const playerRows = $('tr.CRg1, tr.CRg2');
+    if (playerRows.length > 0) {
+      details.playerCount = playerRows.length;
+    } else {
+      // PLAYER COUNT: From "Starting rank" table (future tournaments)
+      const startingRankRows = $('table.CRs1 tr');
+      let count = 0;
+      startingRankRows.each((_, row) => {
+        if (!$(row).hasClass('CRng1b')) {
+          // Not header row
+          count++;
+        }
+      });
+      if (count > 0) {
+        details.playerCount = count;
       }
     }
-    if (labelLower.includes("chief arbiter")) details.chiefArbiter = value;
-    if (labelLower.includes("organizer")) details.organizer = value.split(",")[0].trim();
-    if (labelLower.includes("number of rounds"))
-      details.roundCount = parseInt(value) || undefined;
-  });
 
-  // Extract player count from standings table
-  const playerRows = $('tr.CRg1, tr.CRg2');
-  if (playerRows.length > 0) {
-    details.playerCount = playerRows.length;
-  } else {
-    // Fallback for future tournaments: count from "Starting rank" section
-    // Look for rows in the starting rank table (class="CRs1" or similar)
-    const startingRankRows = $('table.CRs1 tr').not('.CRng1b'); // Exclude header row
-    const actualRows = startingRankRows.filter((_, row) => {
-      const cells = $(row).find('td');
-      return cells.length > 0; // Only count rows with content
-    });
-    if (actualRows.length > 0) {
-      details.playerCount = actualRows.length;
-    }
+    return details;
+  } catch (error) {
+    console.error(`Error fetching details for ${url}:`, error);
+    throw error;
   }
-
-  return details;
 }
