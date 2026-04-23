@@ -153,16 +153,18 @@ export default function TournamentsPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-3">
           {/* Filter Section */}
           <div className="space-y-3">
-            {/* Search and main filters */}
+            {/* Row 1: Search and Time Control */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              <TournamentFilters
+                search={search}
+                onSearchChange={handleSearchChange}
+                timeControl={timeControl}
+                onTimeControlChange={handleTimeControlChange}
+              />
+            </div>
+
+            {/* Row 2: Country, Date, Sort */}
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-wrap">
-              <div className="flex-1 sm:flex-none">
-                <TournamentFilters
-                  search={search}
-                  onSearchChange={handleSearchChange}
-                  timeControl={timeControl}
-                  onTimeControlChange={handleTimeControlChange}
-                />
-              </div>
               <CountryFilter
                 selected={country}
                 onChange={setCountry}
@@ -172,7 +174,7 @@ export default function TournamentsPage() {
                 selectedDateEnd={dateEnd}
                 onDateRangeSelect={handleDateRangeChange}
               />
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 sm:ml-auto">
                 <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
                   Sort by:
                 </label>
