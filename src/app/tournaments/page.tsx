@@ -7,7 +7,6 @@ import { TournamentListSkeleton } from "@/components/tournaments/tournament-skel
 import { TournamentCalendar } from "@/components/tournaments/tournament-calendar";
 import { DatePickerV2 } from "@/components/tournaments/date-picker-v2";
 import { ViewToggle } from "@/components/tournaments/view-toggle";
-import { FilterDrawer } from "@/components/tournaments/filter-drawer";
 import { LoadMoreButton } from "@/components/tournaments/load-more-button";
 import { Button } from "@/components/ui/button";
 import { Trophy } from "lucide-react";
@@ -37,7 +36,6 @@ export default function TournamentsPage() {
   const [dateEnd, setDateEnd] = useState<string>("");
   const [page, setPage] = useState(1);
   const [view, setView] = useState<"grid" | "calendar">("grid");
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   
   const fetchTournaments = useCallback(async (pageNum: number = 1) => {
     const isFirstPage = pageNum === 1;
@@ -136,47 +134,37 @@ export default function TournamentsPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Title */}
           <div className="py-6">
-            <div className="flex items-center gap-3 mb-8">
+            <div className="flex items-center gap-3 mb-6">
               <Trophy className="h-8 w-8 text-amber-500" />
               <h1 className="text-3xl font-bold text-gray-900">
                 Chess Tournaments in Lithuania
               </h1>
             </div>
 
-            {/* Search & Filters Row */}
-            <div className="space-y-4">
-              <TournamentFilters
-                search={search}
-                onSearchChange={handleSearchChange}
-                timeControl={timeControl}
-                onTimeControlChange={handleTimeControlChange}
-                onOpenMobileFilters={() => setMobileFiltersOpen(true)}
+            {/* All Filters in One Row */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              <div className="flex-1">
+                <TournamentFilters
+                  search={search}
+                  onSearchChange={handleSearchChange}
+                  timeControl={timeControl}
+                  onTimeControlChange={handleTimeControlChange}
+                />
+              </div>
+
+              <DatePickerV2
+                selectedDateStart={dateStart}
+                selectedDateEnd={dateEnd}
+                onDateRangeSelect={handleDateRangeChange}
               />
 
-              {/* Date Picker & View Toggle */}
-              <div className="flex flex-col sm:flex-row items-center gap-4 justify-between">
-                <DatePickerV2
-                  selectedDateStart={dateStart}
-                  selectedDateEnd={dateEnd}
-                  onDateRangeSelect={handleDateRangeChange}
-                />
-                <ViewToggle view={view} onViewChange={setView} />
-              </div>
+              <ViewToggle view={view} onViewChange={setView} />
             </div>
           </div>
         </div>
       </div>
 
       {/* Mobile Filter Drawer */}
-      <FilterDrawer
-        isOpen={mobileFiltersOpen}
-        onClose={() => setMobileFiltersOpen(false)}
-        search={search}
-        onSearchChange={handleSearchChange}
-        timeControl={timeControl}
-        onTimeControlChange={handleTimeControlChange}
-        onClearAll={handleClearFilters}
-      />
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

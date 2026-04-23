@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TimeControlFilter } from "@/types/tournament";
 
@@ -26,64 +26,32 @@ export function TournamentFilters({
   onSearchChange,
   timeControl,
   onTimeControlChange,
-  onOpenMobileFilters,
 }: TournamentFiltersProps) {
-  const hasFilters = search || timeControl !== "ALL";
-
   return (
-    <div className="space-y-3">
-      {/* Search Bar - Always visible */}
-      <div className="relative">
+    <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+      {/* Search Bar */}
+      <div className="relative flex-1 sm:min-w-[200px]">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search tournaments..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 h-9"
+          className="pl-10 h-9 text-sm"
         />
       </div>
 
-      {/* Compact Filter Row - Desktop only, with Mobile filter button */}
-      <div className="flex gap-2 items-center flex-wrap">
-        {/* Desktop time control filters - hidden on mobile */}
-        <div className="hidden sm:flex gap-1.5 items-center">
-          {timeControlOptions.map((option) => (
-            <Badge
-              key={option.value}
-              variant={timeControl === option.value ? "default" : "outline"}
-              className="cursor-pointer transition-all hover:scale-105 text-xs px-2 py-0.5"
-              onClick={() => onTimeControlChange(option.value)}
-            >
-              {option.label}
-            </Badge>
-          ))}
-        </div>
-
-        {/* Mobile filter button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onOpenMobileFilters}
-          className="sm:hidden h-9 gap-1"
-        >
-          Filters
-        </Button>
-
-        {/* Clear filters button - only show if filters active */}
-        {hasFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              onSearchChange("");
-              onTimeControlChange("ALL");
-            }}
-            className="h-9 gap-1 text-xs ml-auto"
+      {/* Time Control Filters */}
+      <div className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+        {timeControlOptions.map((option) => (
+          <Badge
+            key={option.value}
+            variant={timeControl === option.value ? "default" : "outline"}
+            className="cursor-pointer transition-all hover:scale-105 text-xs px-2 py-0.5 h-9 flex items-center"
+            onClick={() => onTimeControlChange(option.value)}
           >
-            <X className="h-3 w-3" />
-            Clear
-          </Button>
-        )}
+            {option.label}
+          </Badge>
+        ))}
       </div>
     </div>
   );
