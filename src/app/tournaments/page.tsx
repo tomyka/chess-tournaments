@@ -5,7 +5,7 @@ import { TournamentCard } from "@/components/tournaments/tournament-card";
 import { TournamentFilters } from "@/components/tournaments/tournament-filters";
 import { TournamentListSkeleton } from "@/components/tournaments/tournament-skeleton";
 import { TournamentCalendar } from "@/components/tournaments/tournament-calendar";
-import { DatePickerCalendar } from "@/components/tournaments/date-picker-calendar";
+import { DatePicker } from "@/components/tournaments/date-picker";
 import { ViewToggle } from "@/components/tournaments/view-toggle";
 import { FilterDrawer } from "@/components/tournaments/filter-drawer";
 import { LoadMoreButton } from "@/components/tournaments/load-more-button";
@@ -153,8 +153,8 @@ export default function TournamentsPage() {
           />
 
           {/* Calendar Date Picker */}
-          <div className="mt-4">
-            <DatePickerCalendar
+          <div className="mt-3">
+            <DatePicker
               selectedDateStart={dateStart}
               selectedDateEnd={dateEnd}
               onDateRangeSelect={handleDateRangeChange}
