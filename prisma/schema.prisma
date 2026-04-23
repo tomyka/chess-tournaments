@@ -18,6 +18,7 @@ model Tournament {
   timeControl     TimeControl       @default(UNKNOWN)
   status          TournamentStatus  @default(NOT_STARTED)
   playerCount     Int?
+  averageRating   Int?
   roundCount      Int?
   chiefArbiter    String?
   organizer       String?

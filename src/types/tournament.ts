@@ -7,6 +7,7 @@ export interface ScrapedTournament {
   timeControl: "STANDARD" | "RAPID" | "BLITZ" | "UNKNOWN";
   status: "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";
   playerCount?: number;
+  averageRating?: number;
   roundCount?: number;
   chiefArbiter?: string;
   organizer?: string;
@@ -35,6 +36,7 @@ export interface Tournament {
   timeControl: "STANDARD" | "RAPID" | "BLITZ" | "UNKNOWN";
   status: "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";
   playerCount: number | null;
+  averageRating: number | null;
   roundCount: number | null;
   chiefArbiter: string | null;
   organizer: string | null;

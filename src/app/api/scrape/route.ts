@@ -69,6 +69,7 @@ export async function POST(request: Request) {
                 roundCount: details.roundCount ?? null,
                 organizer: details.organizer ?? null,
                 chiefArbiter: details.chiefArbiter ?? null,
+                averageRating: details.averageRating ?? null,
               },
             });
           } catch {

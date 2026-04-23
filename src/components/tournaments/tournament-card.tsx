@@ -70,6 +70,21 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
               <ExternalLink className="h-4 w-4" />
             </a>
           </div>
+          {/* Player count and average rating below title */}
+          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+            {tournament.playerCount && (
+              <>
+                <Users className="h-3 w-3" />
+                <span>{tournament.playerCount} players</span>
+              </>
+            )}
+            {tournament.averageRating && (
+              <>
+                {tournament.playerCount && <span>•</span>}
+                <span>Avg rating: {tournament.averageRating}</span>
+              </>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="pt-2">
           <div className="flex flex-wrap gap-1 mb-2">
@@ -89,26 +104,19 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
           </div>
 
           <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-            {/* Date, Location, and Players in one row */}
+            {/* Date and Location in one row */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {formatDateRange(tournament.startDate, tournament.endDate) && (
                 <>
                   <Calendar className="h-3 w-3 shrink-0" />
                   <span className="truncate">{formatDateRange(tournament.startDate, tournament.endDate)}</span>
-                  {(tournament.city || tournament.playerCount) && <span>,</span>}
+                  {tournament.city && <span>,</span>}
                 </>
               )}
               {tournament.city && (
                 <>
                   <MapPin className="h-3 w-3 shrink-0" />
                   <span className="truncate">{tournament.city}</span>
-                  {tournament.playerCount && <span>,</span>}
-                </>
-              )}
-              {tournament.playerCount && (
-                <>
-                  <Users className="h-3 w-3 shrink-0" />
-                  <span>{tournament.playerCount} players</span>
                 </>
               )}
             </div>
