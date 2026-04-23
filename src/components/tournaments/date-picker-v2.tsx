@@ -113,11 +113,11 @@ export function DatePickerV2({
         </div>
 
         {/* Weekday Headers */}
-        <div className="grid grid-cols-7 gap-0 mb-2">
+        <div className="grid grid-cols-7 gap-0 mb-1">
           {weekDays.map((day) => (
             <div
               key={day}
-              className="text-center text-xs font-semibold text-gray-700 py-2 h-8"
+              className="text-center text-xs font-semibold text-gray-700 py-1 h-6"
             >
               {day}
             </div>
@@ -125,7 +125,7 @@ export function DatePickerV2({
         </div>
 
         {/* Days Grid */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-0.5">
           {days.map((day) => {
             const inMonth = isSameMonth(day, date);
             const isStart = tempStart && isSameDay(day, tempStart);
@@ -155,8 +155,8 @@ export function DatePickerV2({
                 onClick={() => inMonth && handleDayClick(day)}
                 disabled={!inMonth}
                 className={`
-                  h-10 w-10 flex items-center justify-center text-sm font-medium 
-                  rounded-lg transition-all
+                  h-7 w-7 flex items-center justify-center text-xs font-medium 
+                  rounded transition-all
                   ${bgColor} ${textColor}
                   ${inMonth ? "cursor-pointer hover:bg-gray-100" : "cursor-default"}
                   ${isStart || isEnd ? "" : ""}
@@ -213,18 +213,18 @@ export function DatePickerV2({
           />
 
           {/* Calendar Container */}
-          <div className="relative bg-white rounded-2xl shadow-2xl p-6 m-4 max-w-2xl w-full sm:w-auto">
+          <div className="relative bg-white rounded-2xl shadow-2xl p-4 m-4 max-w-sm sm:max-w-2xl w-full sm:w-auto">
             {/* Header with Navigation */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <button
                 onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <ChevronLeft className="h-5 w-5 text-gray-700" />
+                <ChevronLeft className="h-4 w-4 text-gray-700" />
               </button>
 
               <div className="flex-1 text-center">
-                <h2 className="text-lg font-bold text-gray-900">
+                <h2 className="text-sm font-bold text-gray-900">
                   {tempStart && tempEnd
                     ? `${format(tempStart, "MMM d")} - ${format(
                         tempEnd,
@@ -238,18 +238,18 @@ export function DatePickerV2({
 
               <button
                 onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <ChevronRight className="h-5 w-5 text-gray-700" />
+                <ChevronRight className="h-4 w-4 text-gray-700" />
               </button>
             </div>
 
             {/* Two Calendars - Stack on mobile, side by side on desktop */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 mb-4">
               <div className="flex justify-center">
                 {renderCalendar(currentDate)}
               </div>
-              <div className="flex justify-center">
+              <div className="flex justify-center md:block hidden">
                 {renderCalendar(nextMonth)}
               </div>
             </div>
