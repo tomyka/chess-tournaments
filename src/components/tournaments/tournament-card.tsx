@@ -87,7 +87,7 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
           </div>
         </CardHeader>
         <CardContent className="pt-0.5">
-          <div className="flex flex-wrap gap-1 mb-2">
+          <div className="flex flex-wrap gap-1 mb-1">
             <Badge
               variant="secondary"
               className={`${timeControlColors[tournament.timeControl]} text-xs`}
