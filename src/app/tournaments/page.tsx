@@ -245,13 +245,6 @@ export default function TournamentsPage() {
 
       {/* Main Content */}
       <div className="flex-1 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 w-full">
-        {/* Title Section */}
-        <div className="flex items-center gap-3 mb-8">
-          <Trophy className="h-8 w-8 text-amber-500" />
-          <h1 className="text-3xl font-bold text-gray-900">
-            Chess Tournaments in Lithuania
-          </h1>
-        </div>
         {loading ? (
           <TournamentListSkeleton />
         ) : displayTournaments.length > 0 ? (
