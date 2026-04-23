@@ -186,7 +186,7 @@ export function DatePickerV2({
               ? `${format(new Date(selectedDateStart), "MMM d")} - ${format(new Date(selectedDateEnd), "MMM d")}`
               : selectedDateStart
               ? format(new Date(selectedDateStart), "MMM d")
-              : "Nuo-Iki"}
+              : "Pasirinkite laikotarpį"}
           </div>
         </div>
 
