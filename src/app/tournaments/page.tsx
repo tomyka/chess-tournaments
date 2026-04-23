@@ -143,112 +143,115 @@ export default function TournamentsPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Sticky Header */}
+      {/* Sticky Header - Filters only */}
       <div className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="py-4 sm:py-6">
-            {/* Title */}
-            <div className="flex items-center gap-3 mb-6">
-              <Trophy className="h-8 w-8 text-amber-500" />
-              <h1 className="text-3xl font-bold text-gray-900">
-                Chess Tournaments in Lithuania
-              </h1>
-            </div>
-
-            {/* Filter Section */}
-            <div className="space-y-3">
-              {/* Search and main filters */}
-              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                <div className="flex-1 sm:flex-none">
-                  <TournamentFilters
-                    search={search}
-                    onSearchChange={handleSearchChange}
-                    timeControl={timeControl}
-                    onTimeControlChange={handleTimeControlChange}
-                  />
-                </div>
-                <div className="flex gap-2 items-center">
-                  <DatePickerV2
-                    selectedDateStart={dateStart}
-                    selectedDateEnd={dateEnd}
-                    onDateRangeSelect={handleDateRangeChange}
-                  />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-3">
+          {/* Filter Section */}
+          <div className="space-y-3">
+            {/* Search and main filters */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              <div className="flex-1 sm:flex-none">
+                <TournamentFilters
+                  search={search}
+                  onSearchChange={handleSearchChange}
+                  timeControl={timeControl}
+                  onTimeControlChange={handleTimeControlChange}
+                />
+              </div>
+              <div className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                <DatePickerV2
+                  selectedDateStart={dateStart}
+                  selectedDateEnd={dateEnd}
+                  onDateRangeSelect={handleDateRangeChange}
+                />
+                <div className="flex items-center gap-2">
+                  <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    Sort by:
+                  </label>
                   <select
+                    id="sort-select"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortOption)}
                     className="h-9 px-3 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                   >
-                    <option value="date-asc">Date (Soon)</option>
-                    <option value="date-desc">Date (Recent)</option>
-                    <option value="rating-desc">Rating (High)</option>
-                    <option value="players-desc">Players (Most)</option>
+                    <option value="date-asc">Upcoming First</option>
+                    <option value="date-desc">Recent First</option>
+                    <option value="rating-desc">Highest Rating</option>
+                    <option value="players-desc">Most Players</option>
                   </select>
                 </div>
               </div>
-
-              {/* Active filters pills */}
-              {(search || timeControl.length < 3 || dateStart || sortBy !== "date-asc") && (
-                <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-gray-100">
-                  {search && (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
-                      Search: {search}
-                      <button
-                        onClick={() => setSearch("")}
-                        className="hover:text-blue-900"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  )}
-                  {timeControl.length < 3 && (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">
-                      {timeControl.join(", ")}
-                      <button
-                        onClick={() =>
-                          setTimeControl(["STANDARD", "RAPID", "BLITZ"])
-                        }
-                        className="hover:text-purple-900"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  )}
-                  {(dateStart || dateEnd) && (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-xs rounded-full">
-                      {dateStart && dateEnd
-                        ? `${dateStart} - ${dateEnd}`
-                        : dateStart || dateEnd}
-                      <button
-                        onClick={() => {
-                          setDateStart("");
-                          setDateEnd("");
-                        }}
-                        className="hover:text-green-900"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  )}
-                  {sortBy !== "date-asc" && (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs rounded-full">
-                      Sort: {getSortLabel(sortBy)}
-                      <button
-                        onClick={() => setSortBy("date-asc")}
-                        className="hover:text-amber-900"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
+
+            {/* Active filters pills */}
+            {(search || timeControl.length < 3 || dateStart || sortBy !== "date-asc") && (
+              <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-gray-100">
+                {search && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
+                    Search: {search}
+                    <button
+                      onClick={() => setSearch("")}
+                      className="hover:text-blue-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {timeControl.length < 3 && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">
+                    {timeControl.join(", ")}
+                    <button
+                      onClick={() =>
+                        setTimeControl(["STANDARD", "RAPID", "BLITZ"])
+                      }
+                      className="hover:text-purple-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {(dateStart || dateEnd) && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-xs rounded-full">
+                    {dateStart && dateEnd
+                      ? `${dateStart} - ${dateEnd}`
+                      : dateStart || dateEnd}
+                    <button
+                      onClick={() => {
+                        setDateStart("");
+                        setDateEnd("");
+                      }}
+                      className="hover:text-green-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {sortBy !== "date-asc" && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs rounded-full">
+                    Sort: {getSortLabel(sortBy)}
+                    <button
+                      onClick={() => setSortBy("date-asc")}
+                      className="hover:text-amber-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 w-full">
+        {/* Title Section */}
+        <div className="flex items-center gap-3 mb-8">
+          <Trophy className="h-8 w-8 text-amber-500" />
+          <h1 className="text-3xl font-bold text-gray-900">
+            Chess Tournaments in Lithuania
+          </h1>
+        </div>
         {loading ? (
           <TournamentListSkeleton />
         ) : displayTournaments.length > 0 ? (
@@ -353,10 +356,10 @@ function sortTournaments(tournaments: Tournament[], sortBy: SortOption): Tournam
 
 function getSortLabel(sortBy: SortOption): string {
   const labels: Record<SortOption, string> = {
-    "date-asc": "Date (Soon)",
-    "date-desc": "Date (Recent)",
-    "rating-desc": "Rating (High)",
-    "players-desc": "Players (Most)",
+    "date-asc": "Upcoming First",
+    "date-desc": "Recent First",
+    "rating-desc": "Highest Rating",
+    "players-desc": "Most Players",
   };
   return labels[sortBy];
 }
