@@ -153,27 +153,39 @@ export default function TournamentsPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-3">
           {/* Filter Section */}
           <div className="space-y-3">
-            {/* Row 1: Search and Time Control */}
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            {/* All filters in one row with separators */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-wrap">
+              {/* Group 1: Search and Time Control */}
               <TournamentFilters
                 search={search}
                 onSearchChange={handleSearchChange}
                 timeControl={timeControl}
                 onTimeControlChange={handleTimeControlChange}
               />
-            </div>
-
-            {/* Row 2: Country, Date, Sort */}
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-wrap">
+              
+              {/* Separator */}
+              <div className="hidden sm:block h-6 w-px bg-gray-200" />
+              
+              {/* Group 2: Country */}
               <CountryFilter
                 selected={country}
                 onChange={setCountry}
               />
+              
+              {/* Separator */}
+              <div className="hidden sm:block h-6 w-px bg-gray-200" />
+              
+              {/* Group 3: Date */}
               <DatePickerV2
                 selectedDateStart={dateStart}
                 selectedDateEnd={dateEnd}
                 onDateRangeSelect={handleDateRangeChange}
               />
+              
+              {/* Separator */}
+              <div className="hidden sm:block h-6 w-px bg-gray-200" />
+              
+              {/* Group 4: Sort - aligned to right */}
               <div className="flex items-center gap-2 sm:ml-auto">
                 <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
                   Sort by:
