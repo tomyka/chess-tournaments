@@ -24,22 +24,6 @@ async function fetchTournamentDetails(url: string): Promise<{ playerCount?: numb
     
     const result: { playerCount?: number; date?: Date } = {};
     
-    // Look for player count - pattern: "Players:" or "Participants:" followed by number
-    let playerCountText = "";
-    $("td, div, p").each((_, elem) => {
-      const text = $(elem).text();
-      if (text.match(/Players|Participants|Participants:?/i)) {
-        playerCountText = text;
-      }
-    });
-    
-    if (playerCountText) {
-      const match = playerCountText.match(/(\d+)/);
-      if (match) {
-        result.playerCount = parseInt(match[1], 10);
-      }
-    }
-    
     // Look for date pattern YYYY/MM/DD
     const datePattern = /(\d{4})\/(\d{2})\/(\d{2})/;
     let dateMatch: RegExpMatchArray | null = null;
@@ -56,6 +40,21 @@ async function fetchTournamentDetails(url: string): Promise<{ playerCount?: numb
       if (!isNaN(date.getTime())) {
         result.date = date;
       }
+    }
+    
+    // Count players by counting the "Starting rank" table rows
+    // The starting rank section has numbered entries
+    const startingRankMatch = html.match(/Starting rank[\s\S]*?<table[\s\S]*?<\/table>/i);
+    if (startingRankMatch) {
+      const tableHtml = startingRankMatch[0];
+      const $table = cheerio.load(tableHtml);
+      // Count rows with player data (skip headers)
+      const playerRows = $table("tr").filter((_, tr) => {
+        const text = $(tr).text();
+        // Check if row has a number and player name (FIDE ID, etc)
+        return /^\d+\s+/.test(text.trim());
+      });
+      result.playerCount = playerRows.length;
     }
     
     return result;
