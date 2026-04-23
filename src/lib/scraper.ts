@@ -409,7 +409,8 @@ export async function scrapeTournamentDetails(
     const label = $(cells[0]).text().trim().toLowerCase();
     const value = $(cells[1]).text().trim();
 
-    if (label === "date") {
+    const labelLower = label.toLowerCase();
+    if (labelLower.includes("date")) {
       // Format: "2026/04/25" or "2026/04/25 .. 2026/04/27"
       const dateMatches = value.match(/(\d{4}\/\d{2}\/\d{2})/g);
       if (dateMatches) {
@@ -421,16 +422,18 @@ export async function scrapeTournamentDetails(
         }
       }
     }
-    if (label.includes("rating") && label.includes("average")) {
+    // Match "Rating-Ø / Average age" or similar patterns with rating in the label
+    if ((labelLower.includes("rating") && labelLower.includes("average")) || 
+        /rating.*average|average.*rating/i.test(label)) {
       // Format: "1761 / 35" - extract first number as average rating
       const ratingMatch = value.match(/(\d+)/);
       if (ratingMatch) {
         details.averageRating = parseInt(ratingMatch[1], 10);
       }
     }
-    if (label.includes("chief arbiter")) details.chiefArbiter = value;
-    if (label.includes("organizer")) details.organizer = value.split(",")[0].trim();
-    if (label.includes("number of rounds"))
+    if (labelLower.includes("chief arbiter")) details.chiefArbiter = value;
+    if (labelLower.includes("organizer")) details.organizer = value.split(",")[0].trim();
+    if (labelLower.includes("number of rounds"))
       details.roundCount = parseInt(value) || undefined;
   });
 
