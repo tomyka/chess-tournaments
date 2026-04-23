@@ -153,7 +153,7 @@ export default function TournamentsPage() {
           />
 
           {/* Calendar Date Picker */}
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-4">
             <DatePicker
               selectedDateStart={dateStart}
               selectedDateEnd={dateEnd}
