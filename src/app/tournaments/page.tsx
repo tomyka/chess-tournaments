@@ -139,13 +139,6 @@ export default function TournamentsPage() {
   const hasMore = data ? page < data.pagination.totalPages : false;
   const displayTournaments = allTournaments;
 
-  // Calculate status breakdown
-  const statusBreakdown = {
-    upcoming: displayTournaments.filter((t) => t.status === "NOT_STARTED").length,
-    inProgress: displayTournaments.filter((t) => t.status === "IN_PROGRESS").length,
-    finished: displayTournaments.filter((t) => t.status === "FINISHED").length,
-  };
-
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Sticky Header - Filters only */}
@@ -283,49 +276,18 @@ export default function TournamentsPage() {
           <TournamentListSkeleton />
         ) : displayTournaments.length > 0 ? (
           <>
-            {/* Results summary with breakdown */}
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Showing{" "}
-                  <span className="font-semibold text-foreground">
-                    {displayTournaments.length}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-semibold text-foreground">
-                    {data?.pagination.total || 0}
-                  </span>{" "}
-                  tournaments
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {statusBreakdown.upcoming > 0 && (
-                    <span className="inline-block mr-3">
-                      <span className="font-semibold">{statusBreakdown.upcoming}</span> Upcoming
-                    </span>
-                  )}
-                  {statusBreakdown.inProgress > 0 && (
-                    <span className="inline-block mr-3">
-                      <span className="font-semibold">{statusBreakdown.inProgress}</span> In Progress
-                    </span>
-                  )}
-                  {statusBreakdown.finished > 0 && (
-                    <span className="inline-block">
-                      <span className="font-semibold">{statusBreakdown.finished}</span> Finished
-                    </span>
-                  )}
-                </p>
-              </div>
-              {(search || timeControl.length < 3 || dateStart || dateEnd) && (
+            {/* Clear filters button */}
+            {(search || timeControl.length < 3 || country.length < 2 || dateStart || dateEnd) && (
+              <div className="mb-6 flex justify-end">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleClearFilters}
-                  className="w-full sm:w-auto"
                 >
                   Clear all filters
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {displayTournaments.map((tournament, index) => (
