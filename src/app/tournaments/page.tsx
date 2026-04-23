@@ -29,7 +29,11 @@ export default function TournamentsPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState("");
-  const [timeControl, setTimeControl] = useState<TimeControlFilter>("ALL");
+  const [timeControl, setTimeControl] = useState<TimeControlFilter>([
+    "STANDARD",
+    "RAPID",
+    "BLITZ",
+  ]);
   const [dateStart, setDateStart] = useState<string>("");
   const [dateEnd, setDateEnd] = useState<string>("");
   const [page, setPage] = useState(1);
@@ -45,7 +49,7 @@ export default function TournamentsPage() {
     try {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
-      if (timeControl !== "ALL") params.set("timeControl", timeControl);
+      if (timeControl.length > 0) params.set("timeControl", timeControl.join(","));
       if (dateStart) params.set("dateStart", dateStart);
       if (dateEnd) params.set("dateEnd", dateEnd);
       
@@ -113,7 +117,7 @@ export default function TournamentsPage() {
 
   const handleClearFilters = useCallback(() => {
     setSearch("");
-    setTimeControl("ALL");
+    setTimeControl([]);
   }, []);
 
   const hasMore = data ? page < data.pagination.totalPages : false;
@@ -171,7 +175,7 @@ export default function TournamentsPage() {
                 </span>{" "}
                 tournaments
               </p>
-              {(search || timeControl !== "ALL") && (
+              {(search || timeControl.length > 0) && (
                 <Button
                   variant="ghost"
                   size="sm"

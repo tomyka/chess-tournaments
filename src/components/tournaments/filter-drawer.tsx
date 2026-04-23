@@ -17,11 +17,10 @@ interface FilterDrawerProps {
   onClearAll: () => void;
 }
 
-const timeControlOptions: { value: TimeControlFilter; label: string }[] = [
-  { value: "ALL", label: "All" },
-  { value: "STANDARD", label: "Standard" },
-  { value: "RAPID", label: "Rapid" },
-  { value: "BLITZ", label: "Blitz" },
+const timeControlOptions = [
+  { value: "STANDARD" as const, label: "Standard" },
+  { value: "RAPID" as const, label: "Rapid" },
+  { value: "BLITZ" as const, label: "Blitz" },
 ];
 
 export function FilterDrawer({
@@ -84,10 +83,15 @@ export function FilterDrawer({
                     <Badge
                       key={option.value}
                       variant={
-                        timeControl === option.value ? "default" : "outline"
+                        timeControl.includes(option.value) ? "default" : "outline"
                       }
                       className="cursor-pointer transition-all"
-                      onClick={() => onTimeControlChange(option.value)}
+                      onClick={() => {
+                        const newValue = timeControl.includes(option.value)
+                          ? timeControl.filter((t) => t !== option.value)
+                          : [...timeControl, option.value];
+                        onTimeControlChange(newValue);
+                      }}
                     >
                       {option.label}
                     </Badge>

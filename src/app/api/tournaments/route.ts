@@ -14,8 +14,11 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {};
 
-    if (timeControl && timeControl !== "ALL") {
-      where.timeControl = timeControl;
+    if (timeControl) {
+      const types = timeControl.split(",").filter((t) => t);
+      if (types.length > 0) {
+        where.timeControl = { in: types };
+      }
     }
     if (status && status !== "ALL") {
       where.status = status;

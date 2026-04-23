@@ -46,5 +46,5 @@ export interface Tournament {
   updatedAt: string;
 }
 
-export type TimeControlFilter = "ALL" | "STANDARD" | "RAPID" | "BLITZ";
+export type TimeControlFilter = ("STANDARD" | "RAPID" | "BLITZ")[];
 export type StatusFilter = "ALL" | "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";
