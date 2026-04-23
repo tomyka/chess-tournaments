@@ -91,7 +91,7 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
             {tournament.averageRating && (
               <>
                 {tournament.playerCount && <span>•</span>}
-                <span className="font-medium">{tournament.averageRating}</span>
+                <span className="font-medium">Ø {tournament.averageRating}</span>
               </>
             )}
           </div>
