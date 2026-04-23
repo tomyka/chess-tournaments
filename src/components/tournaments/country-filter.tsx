@@ -5,8 +5,8 @@ import { Globe } from "lucide-react";
 import type { CountryFilter } from "@/types/tournament";
 
 const countries = [
-  { value: "Lithuania", label: "Lithuania" },
-  { value: "Latvia", label: "Latvia" },
+  { value: "Lithuania", label: "Lithuania", activeClass: "bg-yellow-500 hover:bg-yellow-600 text-gray-900" },
+  { value: "Latvia", label: "Latvia", activeClass: "bg-red-600 hover:bg-red-700 text-white" },
 ];
 
 interface CountryFilterProps {
@@ -30,7 +30,9 @@ export function CountryFilter({ selected, onChange }: CountryFilterProps) {
           <Badge
             key={country.value}
             variant={selected.includes(country.value as "Lithuania" | "Latvia") ? "default" : "outline"}
-            className="cursor-pointer transition-all hover:scale-105 text-xs px-2 py-0.5 h-9 flex items-center"
+            className={`cursor-pointer transition-all hover:scale-105 text-xs px-2 py-0.5 h-9 flex items-center ${
+              selected.includes(country.value as "Lithuania" | "Latvia") ? country.activeClass : ""
+            }`}
             onClick={() => toggleCountry(country.value as "Lithuania" | "Latvia")}
           >
             {country.label}
