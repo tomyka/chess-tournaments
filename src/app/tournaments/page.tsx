@@ -5,7 +5,7 @@ import { TournamentCard } from "@/components/tournaments/tournament-card";
 import { TournamentFilters } from "@/components/tournaments/tournament-filters";
 import { TournamentListSkeleton } from "@/components/tournaments/tournament-skeleton";
 import { TournamentCalendar } from "@/components/tournaments/tournament-calendar";
-import { DatePicker } from "@/components/tournaments/date-picker";
+import { DatePickerV2 } from "@/components/tournaments/date-picker-v2";
 import { ViewToggle } from "@/components/tournaments/view-toggle";
 import { FilterDrawer } from "@/components/tournaments/filter-drawer";
 import { LoadMoreButton } from "@/components/tournaments/load-more-button";
@@ -130,35 +130,39 @@ export default function TournamentsPage() {
   const displayTournaments = view === "calendar" ? data?.tournaments || [] : allTournaments;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Fixed Header */}
-      <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
-          {/* Title & View Toggle */}
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-6 w-6 text-amber-500" />
-              <h1 className="text-2xl font-bold tracking-tight">Tournaments</h1>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="border-b border-gray-200">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Title */}
+          <div className="py-6">
+            <div className="flex items-center gap-3 mb-8">
+              <Trophy className="h-8 w-8 text-amber-500" />
+              <h1 className="text-3xl font-bold text-gray-900">
+                Chess Tournaments in Lithuania
+              </h1>
             </div>
-            <ViewToggle view={view} onViewChange={setView} />
-          </div>
 
-          {/* Filters */}
-          <TournamentFilters
-            search={search}
-            onSearchChange={handleSearchChange}
-            timeControl={timeControl}
-            onTimeControlChange={handleTimeControlChange}
-            onOpenMobileFilters={() => setMobileFiltersOpen(true)}
-          />
+            {/* Search & Filters Row */}
+            <div className="space-y-4">
+              <TournamentFilters
+                search={search}
+                onSearchChange={handleSearchChange}
+                timeControl={timeControl}
+                onTimeControlChange={handleTimeControlChange}
+                onOpenMobileFilters={() => setMobileFiltersOpen(true)}
+              />
 
-          {/* Calendar Date Picker */}
-          <div className="mt-3 flex items-center gap-4">
-            <DatePicker
-              selectedDateStart={dateStart}
-              selectedDateEnd={dateEnd}
-              onDateRangeSelect={handleDateRangeChange}
-            />
+              {/* Date Picker & View Toggle */}
+              <div className="flex flex-col sm:flex-row items-center gap-4 justify-between">
+                <DatePickerV2
+                  selectedDateStart={dateStart}
+                  selectedDateEnd={dateEnd}
+                  onDateRangeSelect={handleDateRangeChange}
+                />
+                <ViewToggle view={view} onViewChange={setView} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -175,7 +179,7 @@ export default function TournamentsPage() {
       />
 
       {/* Main Content */}
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         {loading ? (
           <TournamentListSkeleton />
         ) : displayTournaments.length > 0 ? (
