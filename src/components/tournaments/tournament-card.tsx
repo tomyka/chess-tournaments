@@ -89,28 +89,29 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
           </div>
 
           <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-            {/* Date and Location in one row */}
+            {/* Date, Location, and Players in one row */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {formatDateRange(tournament.startDate, tournament.endDate) && (
                 <>
                   <Calendar className="h-3 w-3 shrink-0" />
                   <span className="truncate">{formatDateRange(tournament.startDate, tournament.endDate)}</span>
-                  {tournament.city && <span>,</span>}
+                  {(tournament.city || tournament.playerCount) && <span>,</span>}
                 </>
               )}
               {tournament.city && (
                 <>
                   <MapPin className="h-3 w-3 shrink-0" />
                   <span className="truncate">{tournament.city}</span>
+                  {tournament.playerCount && <span>,</span>}
+                </>
+              )}
+              {tournament.playerCount && (
+                <>
+                  <Users className="h-3 w-3 shrink-0" />
+                  <span>{tournament.playerCount} players</span>
                 </>
               )}
             </div>
-            {tournament.playerCount && (
-              <div className="flex items-center gap-1.5">
-                <Users className="h-3 w-3 shrink-0" />
-                <span>{tournament.playerCount} players</span>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
