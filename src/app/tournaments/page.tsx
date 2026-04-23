@@ -39,7 +39,8 @@ function getDefaultDates() {
 }
 
 export default function TournamentsPage() {
-  const { todayStr, nextNextSundayStr } = getDefaultDates();
+  // Initialize with null to avoid hydration mismatch
+  const [defaultDates, setDefaultDates] = useState<{ todayStr: string; nextNextSundayStr: string } | null>(null);
   
   const [data, setData] = useState<TournamentsResponse | null>(null);
   const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
@@ -47,12 +48,23 @@ export default function TournamentsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState("");
   const [timeControl, setTimeControl] = useState<TimeControlFilter>("ALL");
-  const [dateStart, setDateStart] = useState<string>(todayStr);
-  const [dateEnd, setDateEnd] = useState<string>(nextNextSundayStr);
+  const [dateStart, setDateStart] = useState<string>("");
+  const [dateEnd, setDateEnd] = useState<string>("");
   const [page, setPage] = useState(1);
   const [view, setView] = useState<"grid" | "calendar">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  // Initialize dates after hydration
+  useEffect(() => {
+    const dates = getDefaultDates();
+    setDefaultDates(dates);
+    setDateStart(dates.todayStr);
+    setDateEnd(dates.nextNextSundayStr);
+  }, []);
+
+  const todayStr = defaultDates?.todayStr || "";
+  const nextNextSundayStr = defaultDates?.nextNextSundayStr || "";
+  
   const fetchTournaments = useCallback(async (pageNum: number = 1) => {
     const isFirstPage = pageNum === 1;
     if (isFirstPage) {
