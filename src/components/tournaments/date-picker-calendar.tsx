@@ -14,7 +14,6 @@ import {
   subMonths,
   isWithinInterval,
   isBefore,
-  isAfter,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -83,20 +82,20 @@ export function DatePickerCalendar({
     const weekDays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
     return (
-      <div className="w-full sm:w-80">
+      <div className="w-full">
         {/* Month/Year Header */}
-        <div className="mb-4 text-center">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {format(date, "MMMM yyyy")}
+        <div className="mb-3 text-center">
+          <h3 className="text-sm font-semibold text-gray-900">
+            {format(date, "MMM yyyy")}
           </h3>
         </div>
 
         {/* Weekday Headers */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-0.5 mb-1">
           {weekDays.map((day) => (
             <div
               key={day}
-              className="text-center text-xs font-semibold text-gray-600 py-2"
+              className="text-center text-xs font-medium text-gray-600 py-1"
             >
               {day}
             </div>
@@ -104,7 +103,7 @@ export function DatePickerCalendar({
         </div>
 
         {/* Days Grid */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-0.5">
           {days.map((day) => {
             const inMonth = isSameMonth(day, date);
             const isStart = tempStart && isSameDay(day, tempStart);
@@ -138,13 +137,10 @@ export function DatePickerCalendar({
                 onClick={() => inMonth && handleDayClick(day)}
                 disabled={!inMonth}
                 className={`
-                  h-10 text-sm transition-all rounded-md
+                  h-8 text-xs transition-all rounded
                   ${bgColor} ${textColor}
                   ${inMonth && !isStart && !isEnd && !inRange ? "cursor-pointer hover:bg-gray-100" : ""}
                   ${!inMonth ? "cursor-default" : ""}
-                  ${(isStart || isEnd) && inRange && tempStart !== tempEnd ? "rounded-none" : ""}
-                  ${isStart ? "rounded-l-md" : ""}
-                  ${isEnd ? "rounded-r-md" : ""}
                 `}
               >
                 {format(day, "d")}
@@ -159,48 +155,48 @@ export function DatePickerCalendar({
   const nextMonth = addMonths(currentDate, 1);
 
   return (
-    <div className="w-full bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-200 p-6 shadow-sm">
+    <div className="w-full bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
       {/* Navigation */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-          className="h-9 w-9 p-0"
+          className="h-7 w-7 p-0"
         >
-          <ChevronLeft className="h-5 w-5 text-gray-600" />
+          <ChevronLeft className="h-4 w-4 text-gray-600" />
         </Button>
-        <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+        <span className="text-xs text-gray-600 font-medium">
           {selectedDateStart && selectedDateEnd
-            ? `${format(new Date(selectedDateStart), "MMM d")} - ${format(new Date(selectedDateEnd), "MMM d, yyyy")}`
+            ? `${format(new Date(selectedDateStart), "d MMM")} - ${format(new Date(selectedDateEnd), "d MMM")}`
             : selectedDateStart
-            ? `From ${format(new Date(selectedDateStart), "MMM d, yyyy")}`
+            ? `From ${format(new Date(selectedDateStart), "d MMM")}`
             : "Select dates"}
         </span>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-          className="h-9 w-9 p-0"
+          className="h-7 w-7 p-0"
         >
-          <ChevronRight className="h-5 w-5 text-gray-600" />
+          <ChevronRight className="h-4 w-4 text-gray-600" />
         </Button>
       </div>
 
       {/* Two Calendars */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         {renderCalendar(currentDate)}
         {renderCalendar(nextMonth)}
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-3 pt-4 border-t border-gray-200">
+      <div className="flex gap-2 pt-3 border-t border-gray-200">
         {(tempStart || tempEnd) && (
           <Button
             variant="outline"
             size="sm"
             onClick={handleClear}
-            className="flex-1"
+            className="flex-1 h-8 text-xs"
           >
             Clear
           </Button>
@@ -209,7 +205,7 @@ export function DatePickerCalendar({
           onClick={handleApply}
           disabled={!tempStart}
           size="sm"
-          className="flex-1 bg-blue-600 hover:bg-blue-700"
+          className="flex-1 h-8 text-xs bg-blue-600 hover:bg-blue-700"
         >
           Done
         </Button>

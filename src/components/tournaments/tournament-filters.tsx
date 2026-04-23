@@ -16,9 +16,9 @@ interface TournamentFiltersProps {
 
 const timeControlOptions: { value: TimeControlFilter; label: string }[] = [
   { value: "ALL", label: "All" },
-  { value: "STANDARD", label: "St" },
-  { value: "RAPID", label: "Rp" },
-  { value: "BLITZ", label: "Bz" },
+  { value: "STANDARD", label: "Standard" },
+  { value: "RAPID", label: "Rapid" },
+  { value: "BLITZ", label: "Blitz" },
 ];
 
 export function TournamentFilters({
