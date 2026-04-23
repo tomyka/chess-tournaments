@@ -441,6 +441,17 @@ export async function scrapeTournamentDetails(
   const playerRows = $('tr.CRg1, tr.CRg2');
   if (playerRows.length > 0) {
     details.playerCount = playerRows.length;
+  } else {
+    // Fallback for future tournaments: count from "Starting rank" section
+    // Look for rows in the starting rank table (class="CRs1" or similar)
+    const startingRankRows = $('table.CRs1 tr').not('.CRng1b'); // Exclude header row
+    const actualRows = startingRankRows.filter((_, row) => {
+      const cells = $(row).find('td');
+      return cells.length > 0; // Only count rows with content
+    });
+    if (actualRows.length > 0) {
+      details.playerCount = actualRows.length;
+    }
   }
 
   return details;
