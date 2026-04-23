@@ -42,18 +42,10 @@ async function fetchTournamentDetails(url: string): Promise<{ playerCount?: numb
       }
     }
     
-    // Count players by counting the "Starting rank" table rows
-    // The starting rank section has numbered entries
-    const startingRankMatch = html.match(/Starting rank[\s\S]*?<table[\s\S]*?<\/table>/i);
-    if (startingRankMatch) {
-      const tableHtml = startingRankMatch[0];
-      const $table = cheerio.load(tableHtml);
-      // Count rows with player data (skip headers)
-      const playerRows = $table("tr").filter((_, tr) => {
-        const text = $(tr).text();
-        // Check if row has a number and player name (FIDE ID, etc)
-        return /^\d+\s+/.test(text.trim());
-      });
+    // Count players by counting rows with class="CRg2 LTU" in the standings table
+    // These are the actual participant rows from the federation
+    const playerRows = cheerio.load(html)('tr.CRg2.LTU');
+    if (playerRows.length > 0) {
       result.playerCount = playerRows.length;
     }
     
