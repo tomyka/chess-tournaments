@@ -30,6 +30,7 @@ export async function POST(request: Request) {
           status: t.status,
           url: t.url,
           playerCount: t.playerCount ?? null,
+          averageRating: t.averageRating ?? null,
           lastScrapedAt: new Date(),
         },
         create: {
@@ -41,22 +42,28 @@ export async function POST(request: Request) {
           status: t.status,
           url: t.url,
           playerCount: t.playerCount ?? null,
+          averageRating: t.averageRating ?? null,
         },
       });
       updated++;
     }
 
-    // Fetch details (accurate dates, rounds, organizer) for tournaments missing startDate.
+    // Fetch details (accurate dates, rounds, organizer, average rating) for tournaments missing these.
     // Capped at 15/run in batches of 5 to stay within serverless timeout.
-    const needsDates = await prisma.tournament.findMany({
-      where: { startDate: null },
+    const needsDetails = await prisma.tournament.findMany({
+      where: {
+        OR: [
+          { startDate: null },
+          { averageRating: null }
+        ]
+      },
       select: { chessResultsId: true, url: true },
       take: 15,
     });
 
     const BATCH_SIZE = 5;
-    for (let i = 0; i < needsDates.length; i += BATCH_SIZE) {
-      const batch = needsDates.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < needsDetails.length; i += BATCH_SIZE) {
+      const batch = needsDetails.slice(i, i + BATCH_SIZE);
       await Promise.all(
         batch.map(async (t) => {
           try {

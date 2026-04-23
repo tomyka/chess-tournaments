@@ -7,9 +7,9 @@ const BASE_URL = "https://chess-results.com";
 const SEARCH_URL = "https://s3.chess-results.com/turniersuche.aspx?SNode=S0";
 
 /**
- * Fetch tournament details including player count, ratings, and other info
+ * Fetch tournament details including player count and date
  */
-async function fetchTournamentDetails(url: string): Promise<{ playerCount?: number; date?: Date; averageRating?: number }> {
+async function fetchTournamentDetails(url: string): Promise<{ playerCount?: number; date?: Date }> {
   try {
     const response = await fetch(url, {
       headers: {
@@ -22,7 +22,7 @@ async function fetchTournamentDetails(url: string): Promise<{ playerCount?: numb
     const html = await response.text();
     const $ = cheerio.load(html);
     
-    const result: { playerCount?: number; date?: Date; averageRating?: number } = {};
+    const result: { playerCount?: number; date?: Date } = {};
     
     // Look for date pattern YYYY/MM/DD
     const datePattern = /(\d{4})\/(\d{2})\/(\d{2})/;
@@ -44,27 +44,9 @@ async function fetchTournamentDetails(url: string): Promise<{ playerCount?: numb
     
     // Count players by counting rows with class="CRg1" or "CRg2" (alternating row colors in standings table)
     // This includes all participants regardless of federation
-    const playerRows = cheerio.load(html)('tr.CRg1, tr.CRg2');
+    const playerRows = $('tr.CRg1, tr.CRg2');
     if (playerRows.length > 0) {
       result.playerCount = playerRows.length;
-      
-      // Extract ratings from cells with class="CRr" and calculate average
-      const ratings: number[] = [];
-      playerRows.each((_, row) => {
-        const ratingCell = $(row).find('td.CRr').first();
-        if (ratingCell.length > 0) {
-          const ratingText = ratingCell.text().trim();
-          const rating = parseInt(ratingText, 10);
-          if (!isNaN(rating) && rating > 0) {
-            ratings.push(rating);
-          }
-        }
-      });
-      
-      if (ratings.length > 0) {
-        const avg = Math.round(ratings.reduce((a, b) => a + b, 0) / ratings.length);
-        result.averageRating = avg;
-      }
     }
     
     return result;
@@ -378,7 +360,7 @@ async function scrapeFederationPageFallback(): Promise<ScrapedTournament[]> {
   }
 
   // Fetch missing dates and player counts from tournament details pages
-  console.log(`Fetching dates, player counts, and ratings...`);
+  console.log(`Fetching dates and player counts...`);
   let fetchedCount = 0;
   for (const tournament of tournaments) {
     const { date, playerCount } = await fetchTournamentDetails(tournament.url);
@@ -439,34 +421,23 @@ export async function scrapeTournamentDetails(
         }
       }
     }
+    if (label.includes("rating") && label.includes("average")) {
+      // Format: "1761 / 35" - extract first number as average rating
+      const ratingMatch = value.match(/(\d+)/);
+      if (ratingMatch) {
+        details.averageRating = parseInt(ratingMatch[1], 10);
+      }
+    }
     if (label.includes("chief arbiter")) details.chiefArbiter = value;
     if (label.includes("organizer")) details.organizer = value.split(",")[0].trim();
     if (label.includes("number of rounds"))
       details.roundCount = parseInt(value) || undefined;
   });
 
-  // Extract player count and average rating from standings table
+  // Extract player count from standings table
   const playerRows = $('tr.CRg1, tr.CRg2');
   if (playerRows.length > 0) {
     details.playerCount = playerRows.length;
-    
-    // Extract ratings and calculate average
-    const ratings: number[] = [];
-    playerRows.each((_, row) => {
-      const ratingCell = $(row).find('td.CRr').first();
-      if (ratingCell.length > 0) {
-        const ratingText = ratingCell.text().trim();
-        const rating = parseInt(ratingText, 10);
-        if (!isNaN(rating) && rating > 0) {
-          ratings.push(rating);
-        }
-      }
-    });
-    
-    if (ratings.length > 0) {
-      const avg = Math.round(ratings.reduce((a, b) => a + b, 0) / ratings.length);
-      details.averageRating = avg;
-    }
   }
 
   return details;
