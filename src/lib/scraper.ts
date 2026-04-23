@@ -1,9 +1,9 @@
 import * as cheerio from "cheerio";
-import { parseTimeControl, parseStatus } from "./scraper-utils";
+import { parseTimeControl } from "./scraper-utils";
 import type { ScrapedTournament } from "@/types/tournament";
 
-const BASE_URL = "https://chess-results.com";
-const LTU_FED_URL = `${BASE_URL}/fed.aspx?lan=1&fed=LTU`;
+const BASE_URL = "https://s3.chess-results.com";
+const SEARCH_URL = `${BASE_URL}/turniersuche.aspx?SNode=S0`;
 
 function parseDateFromName(name: string): { city?: string; startDate?: Date } {
   const cityPatterns = [
@@ -44,7 +44,6 @@ function parseDateFromName(name: string): { city?: string; startDate?: Date } {
     const monthDayRangeMatch = name.match(/\((\d{2})\s+\d{2}-\d{2}\)/);
     if (monthDayRangeMatch) {
       const year = new Date().getFullYear();
-      const month = monthDayRangeMatch[1];
       // Use the first day in the range
       const dayMatch = name.match(/\((\d{2})\s+(\d{2})-\d{2}\)/);
       if (dayMatch) {
@@ -57,23 +56,135 @@ function parseDateFromName(name: string): { city?: string; startDate?: Date } {
   return { city, startDate };
 }
 
+// First, get the form with VIEWSTATE
+async function getSearchFormData(): Promise<{
+  viewstate: string;
+  eventvalidation: string;
+}> {
+  const response = await fetch(SEARCH_URL, {
+    headers: {
+      "User-Agent": "ChessTournamentsLT/1.0 (educational project)",
+    },
+  });
+
+  const html = await response.text();
+  const $ = cheerio.load(html);
+
+  const viewstate =
+    $('input[name="__VIEWSTATE"]').val() as string;
+  const eventvalidation = $(
+    'input[name="__EVENTVALIDATION"]'
+  ).val() as string;
+
+  return { viewstate, eventvalidation };
+}
+
 export async function scrapeTournamentList(): Promise<ScrapedTournament[]> {
-  const response = await fetch(LTU_FED_URL, {
+  try {
+    // Get form data first
+    const { viewstate, eventvalidation } = await getSearchFormData();
+
+    // Build form data for POST request
+    const formData = new URLSearchParams();
+    formData.append("__VIEWSTATE", viewstate);
+    formData.append("__EVENTVALIDATION", eventvalidation);
+    formData.append("ctl00$P1$combo_land", "LT"); // Lithuania
+    formData.append("ctl00$P1$TextBox_maxlines", "500"); // Top 500
+    formData.append("ctl00$P1$Button_search", "Search"); // Submit button
+
+    // Make POST request to search
+    const searchResponse = await fetch(SEARCH_URL, {
+      method: "POST",
+      headers: {
+        "User-Agent": "ChessTournamentsLT/1.0 (educational project)",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString(),
+    });
+
+    if (!searchResponse.ok) {
+      throw new Error(`Failed to search tournaments: ${searchResponse.status}`);
+    }
+
+    const html = await searchResponse.text();
+    const $ = cheerio.load(html);
+    const tournaments: ScrapedTournament[] = [];
+
+    // Find tournament rows in the results
+    // The results are typically in a table with alternating row classes
+    $('table tr').each((_, row) => {
+      const cells = $(row).find('td');
+      if (cells.length < 2) return;
+
+      // Look for links containing tournament references (tnr)
+      const link = $(row).find('a[href*="tnr"]').first();
+      if (!link.length) return;
+
+      const name = link.text().trim();
+      const href = link.attr('href') ?? '';
+      if (!name || !href) return;
+
+      // Extract tournament ID
+      const idMatch = href.match(/tnr(\d+)/);
+      if (!idMatch) return;
+
+      const chessResultsId = `tnr${idMatch[1]}`;
+      const url = href.startsWith('http') ? href : `https://chess-results.com/${href}`;
+
+      // Try to parse time control from row
+      const rowText = $(row).text().toUpperCase();
+      let timeControl: "STANDARD" | "RAPID" | "BLITZ" | "UNKNOWN" = "UNKNOWN";
+      if (rowText.includes("ST")) timeControl = "STANDARD";
+      else if (rowText.includes("RP")) timeControl = "RAPID";
+      else if (rowText.includes("BZ")) timeControl = "BLITZ";
+
+      // Parse status from text
+      let status: "NOT_STARTED" | "IN_PROGRESS" | "FINISHED" = "NOT_STARTED";
+      if (rowText.includes("FINISHED")) status = "FINISHED";
+      else if (rowText.includes("IN PROGRESS")) status = "IN_PROGRESS";
+
+      const { city, startDate } = parseDateFromName(name);
+
+      tournaments.push({
+        chessResultsId,
+        name,
+        city,
+        startDate,
+        timeControl,
+        status,
+        url,
+      });
+    });
+
+    console.log(`Scraped ${tournaments.length} tournaments from search`);
+    return tournaments;
+  } catch (error) {
+    console.error("Scraping error:", error);
+    // Fallback to federation page if search fails
+    console.log("Falling back to federation page...");
+    return scrapeFederationPage();
+  }
+}
+
+// Fallback: Scrape from federation page
+async function scrapeFederationPage(): Promise<ScrapedTournament[]> {
+  const fedUrl = "https://chess-results.com/fed.aspx?lan=1&fed=LTU";
+  
+  const response = await fetch(fedUrl, {
     headers: {
       "User-Agent": "ChessTournamentsLT/1.0 (educational project)",
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch tournament list: ${response.status}`);
+    throw new Error(`Failed to fetch federation list: ${response.status}`);
   }
 
   const html = await response.text();
   const $ = cheerio.load(html);
   const tournaments: ScrapedTournament[] = [];
 
-  // Rows are <tr class="CRg1 LTU"> / <tr class="CRg2 LTU"> inside <table class="CRs2">
-  // Each row has 3 cells: [No., Name+link, TimeControl+Status]
+  // Rows with Lithuania tournaments
   $("table.CRs2 tr.LTU").each((_, row) => {
     const cells = $(row).find("td");
     if (cells.length < 3) return;
@@ -85,18 +196,17 @@ export async function scrapeTournamentList(): Promise<ScrapedTournament[]> {
     const href = link.attr("href");
     if (!name || !href) return;
 
-    // Extract chess-results ID from URL (e.g. tnr1376296)
     const idMatch = href.match(/tnr(\d+)/);
     if (!idMatch) return;
 
     const chessResultsId = `tnr${idMatch[1]}`;
-    const url = href.startsWith("http") ? href : `${BASE_URL}/${href}`;
+    const url = href.startsWith("http")
+      ? href
+      : `https://chess-results.com${href}`;
 
-    // Time control is in <small>Rp</small> / <small>St</small> / <small>Bz</small>
     const tcText = $(cells[2]).find("small").first().text().trim();
-    const timeControl = parseTimeControl(tcText);
+    const timeControl = parseTimeControl(tcText) as "STANDARD" | "RAPID" | "BLITZ" | "UNKNOWN";
 
-    // Status is derived from the div class: p_5=not started, p_17=playing, p_18=finished
     const statusClass = $(cells[2]).find("div").first().attr("class") ?? "";
     const status = statusClass.includes("p_17")
       ? "IN_PROGRESS"
@@ -112,7 +222,7 @@ export async function scrapeTournamentList(): Promise<ScrapedTournament[]> {
       city,
       startDate,
       timeControl,
-      status,
+      status: status as "NOT_STARTED" | "IN_PROGRESS" | "FINISHED",
       url,
     });
   });
