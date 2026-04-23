@@ -86,7 +86,7 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
             )}
           </div>
         </CardHeader>
-        <CardContent className="pt-2">
+        <CardContent className="pt-0.5">
           <div className="flex flex-wrap gap-1 mb-2">
             <Badge
               variant="secondary"
