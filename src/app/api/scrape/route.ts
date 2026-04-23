@@ -29,6 +29,7 @@ export async function POST(request: Request) {
           timeControl: t.timeControl,
           status: t.status,
           url: t.url,
+          playerCount: t.playerCount ?? null,
           lastScrapedAt: new Date(),
         },
         create: {
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
           timeControl: t.timeControl,
           status: t.status,
           url: t.url,
+          playerCount: t.playerCount ?? null,
         },
       });
       updated++;
