@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { TournamentCard } from "@/components/tournaments/tournament-card";
 import { TournamentListSkeleton } from "@/components/tournaments/tournament-skeleton";
+import { EmptyState } from "@/components/tournaments/empty-state";
 import { FilterDrawer } from "@/components/tournaments/filter-drawer";
 import { LoadMoreButton } from "@/components/tournaments/load-more-button";
 import { TournamentFilters } from "@/components/tournaments/tournament-filters";
@@ -245,9 +246,9 @@ export default function TournamentsPage() {
               {/* Time Control Filter - Fixed width badges */}
               <div className="flex gap-1.5">
                 {[
-                  { value: "STANDARD" as const, label: "⏱" },
-                  { value: "RAPID" as const, label: "♟" },
-                  { value: "BLITZ" as const, label: "⚡" },
+                  { value: "STANDARD" as const, label: "⏱", name: "Standard" },
+                  { value: "RAPID" as const, label: "♟", name: "Rapid" },
+                  { value: "BLITZ" as const, label: "⚡", name: "Blitz" },
                 ].map((option) => {
                   const isActive = timeControl.includes(option.value);
                   return (
@@ -259,7 +260,8 @@ export default function TournamentsPage() {
                           : [...timeControl, option.value];
                         setTimeControl(newValue);
                       }}
-                      title={option.value}
+                      title={`${option.name} chess - ${isActive ? "Active" : "Inactive"}`}
+                      aria-label={`Toggle ${option.name} chess filter`}
                       className={`w-10 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                         isActive
                           ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
@@ -275,8 +277,8 @@ export default function TournamentsPage() {
               {/* Country Filter - Fixed width badges */}
               <div className="flex gap-1.5">
                 {[
-                  { value: "Lithuania" as const, label: "🇱🇹" },
-                  { value: "Latvia" as const, label: "🇱🇻" },
+                  { value: "Lithuania" as const, label: "🇱🇹", name: "Lithuania" },
+                  { value: "Latvia" as const, label: "🇱🇻", name: "Latvia" },
                 ].map((option) => {
                   const isSelected = country.includes(option.value);
                   return (
@@ -288,7 +290,8 @@ export default function TournamentsPage() {
                           : [...country, option.value];
                         setCountry(newSelected);
                       }}
-                      title={option.value}
+                      title={`${option.name} - ${isSelected ? "Selected" : "Not selected"}`}
+                      aria-label={`Toggle ${option.name} filter`}
                       className={`w-10 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                         isSelected
                           ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
@@ -314,6 +317,9 @@ export default function TournamentsPage() {
               <div className="relative" ref={sortDropdownRef}>
                 <button
                   onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                  title="Sort tournaments by date, players, or rating"
+                  aria-label="Sort tournaments - currently sorting by upcoming"
+                  aria-expanded={sortDropdownOpen ? true : false}
                   className={`flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                     sortBy !== "date-asc"
                       ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
@@ -382,13 +388,10 @@ export default function TournamentsPage() {
             <LoadMoreButton onClick={handleLoadMore} isLoading={loadingMore} hasMore={hasMore} />
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Trophy className="mb-4 h-12 w-12 text-muted-foreground/30" />
-            <h3 className="text-lg font-semibold">No tournaments found</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Try adjusting your filters or search term.
-            </p>
-          </div>
+          <EmptyState
+            hasFilters={search.length > 0 || timeControl.length < 3 || country.length < 2 || !!dateStart || !!dateEnd}
+            onClearFilters={handleClearFilters}
+          />
         )}
       </div>
     </div>
