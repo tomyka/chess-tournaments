@@ -2,7 +2,6 @@
 
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { DatePickerV2 } from "./date-picker-v2";
 import type { TimeControlFilter, CountryFilter } from "@/types/tournament";
@@ -97,21 +96,27 @@ export function FilterDrawer({
                   Time Control
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {timeControlOptions.map((option) => (
-                    <Badge
-                      key={option.value}
-                      variant={timeControl.includes(option.value) ? "default" : "outline"}
-                      className="cursor-pointer transition-all text-sm px-3 py-1.5 h-auto"
-                      onClick={() => {
-                        const newValue = timeControl.includes(option.value)
-                          ? timeControl.filter((t) => t !== option.value)
-                          : [...timeControl, option.value];
-                        onTimeControlChange(newValue);
-                      }}
-                    >
-                      {option.label}
-                    </Badge>
-                  ))}
+                  {timeControlOptions.map((option) => {
+                    const isActive = timeControl.includes(option.value);
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          const newValue = timeControl.includes(option.value)
+                            ? timeControl.filter((t) => t !== option.value)
+                            : [...timeControl, option.value];
+                          onTimeControlChange(newValue);
+                        }}
+                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          isActive
+                            ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 shadow-sm hover:shadow-md"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -121,21 +126,27 @@ export function FilterDrawer({
                   Country
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {countryOptions.map((option) => (
-                    <Badge
-                      key={option.value}
-                      variant={country.includes(option.value) ? "default" : "outline"}
-                      className="cursor-pointer transition-all text-sm px-3 py-1.5 h-auto"
-                      onClick={() => {
-                        const newValue = country.includes(option.value)
-                          ? country.filter((c) => c !== option.value)
-                          : [...country, option.value];
-                        onCountryChange(newValue as CountryFilter);
-                      }}
-                    >
-                      {option.label}
-                    </Badge>
-                  ))}
+                  {countryOptions.map((option) => {
+                    const isActive = country.includes(option.value);
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          const newValue = country.includes(option.value)
+                            ? country.filter((c) => c !== option.value)
+                            : [...country, option.value];
+                          onCountryChange(newValue as CountryFilter);
+                        }}
+                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          isActive
+                            ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 shadow-sm hover:shadow-md"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

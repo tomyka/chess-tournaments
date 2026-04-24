@@ -168,10 +168,11 @@ export default function TournamentsPage() {
         onClearAll={handleClearFilters}
       />
 
-      {/* Sticky Header - Minimalist unified layout */}
+      {/* Sticky Header - Responsive layout */}
       <div className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-col gap-2">
+          {/* Mobile layout: search + filter drawer */}
+          <div className="lg:hidden flex flex-col gap-2">
             {/* Full-width search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -201,6 +202,79 @@ export default function TournamentsPage() {
                 Filters
               </button>
             </div>
+          </div>
+
+          {/* Desktop layout: inline expandable filters */}
+          <div className="hidden lg:flex flex-col gap-2">
+            {/* Search + Filters button on one line */}
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="Search tournaments..."
+                  value={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-10 h-10 text-sm w-full"
+                />
+              </div>
+              <button
+                onClick={() => setFilterDrawerOpen(true)}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm border rounded-lg transition-all whitespace-nowrap font-medium ${
+                  hasActiveFilters
+                    ? "border-amber-600 bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700"
+                    : "border-gray-300 bg-gray-50 text-gray-700 hover:bg-white hover:shadow-md shadow-sm"
+                }`}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+              </button>
+            </div>
+
+            {/* Active filters on expanded row */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap gap-2 items-center p-2 bg-gray-50 rounded-lg border border-gray-200">
+                {search && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    🔍 {search}
+                    <button onClick={() => setSearch("")} className="ml-1 text-gray-500 hover:text-gray-900">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {timeControl.length < 3 && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    {timeControl.map((t) => ({STANDARD: "⏱", RAPID: "♟", BLITZ: "⚡"}[t])).join("")} {timeControl.join(", ")}
+                    <button onClick={() => setTimeControl(["STANDARD", "RAPID", "BLITZ"])} className="ml-1 text-gray-500 hover:text-gray-900">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {country.length < 2 && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    🌍 {country.join(", ")}
+                    <button onClick={() => setCountry(["Lithuania", "Latvia"])} className="ml-1 text-gray-500 hover:text-gray-900">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {(dateStart || dateEnd) && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    📅 {dateStart && dateEnd ? `${dateStart} - ${dateEnd}` : dateStart || dateEnd}
+                    <button onClick={() => { setDateStart(""); setDateEnd(""); }} className="ml-1 text-gray-500 hover:text-gray-900">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {sortBy !== "date-asc" && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    ↑ {getSortLabel(sortBy)}
+                    <button onClick={() => setSortBy("date-asc")} className="ml-1 text-gray-500 hover:text-gray-900">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
