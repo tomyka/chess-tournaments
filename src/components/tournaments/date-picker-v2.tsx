@@ -139,13 +139,13 @@ export function DatePickerV2({
             if (!inMonth) {
               textColor = "text-gray-300";
             } else if (isStart || isEnd) {
-              bgColor = "bg-black text-white font-semibold";
+              bgColor = "bg-amber-600 text-white font-semibold";
               textColor = "text-white";
             } else if (inRange) {
               bgColor = "bg-gray-200";
               textColor = "text-gray-700";
             } else if (isToday) {
-              bgColor = "border-2 border-black";
+              bgColor = "border-2 border-amber-600";
               textColor = "text-gray-900 font-semibold";
             }
 
