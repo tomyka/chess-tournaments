@@ -269,7 +269,7 @@ export function DatePickerV2({
                 disabled={!tempStart}
                 className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
                   tempStart
-                    ? "bg-black text-white hover:bg-gray-800"
+                    ? "bg-amber-600 text-white hover:bg-amber-700"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >

@@ -198,7 +198,7 @@ export default function TournamentsPage() {
                 onClick={() => setFilterDrawerOpen(true)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg transition-colors whitespace-nowrap ${
                   hasActiveFilters
-                    ? "border-gray-900 bg-gray-900 text-white"
+                    ? "border-amber-600 bg-amber-600 text-white"
                     : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
                 }`}
               >
@@ -234,7 +234,7 @@ export default function TournamentsPage() {
                   id="sort-select"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="h-9 px-3 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="h-9 px-3 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
                 >
                   <option value="date-asc">Upcoming First</option>
                   <option value="date-desc">Recent First</option>
@@ -244,45 +244,45 @@ export default function TournamentsPage() {
               </div>
             </div>
 
-            {/* Active filter pills (desktop) */}
+            {/* Active filter pills (desktop) — simplified to match mobile */}
             {(search || timeControl.length < 3 || country.length < 2 || dateStart || sortBy !== "date-asc") && (
               <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-gray-100">
                 {search && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
-                    Search: {search}
-                    <button onClick={() => setSearch("")} className="hover:text-blue-900">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    🔍 {search}
+                    <button onClick={() => setSearch("")} className="ml-1 text-gray-500 hover:text-gray-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 )}
                 {timeControl.length < 3 && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">
-                    {timeControl.join(", ")}
-                    <button onClick={() => setTimeControl(["STANDARD", "RAPID", "BLITZ"])} className="hover:text-purple-900">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    {timeControl.map((t) => ({STANDARD: "⏱", RAPID: "♟", BLITZ: "⚡"}[t])).join("")} {timeControl.join(", ")}
+                    <button onClick={() => setTimeControl(["STANDARD", "RAPID", "BLITZ"])} className="ml-1 text-gray-500 hover:text-gray-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 )}
                 {country.length < 2 && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-full">
-                    {country.join(", ")}
-                    <button onClick={() => setCountry(["Lithuania", "Latvia"])} className="hover:text-indigo-900">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    🌍 {country.join(", ")}
+                    <button onClick={() => setCountry(["Lithuania", "Latvia"])} className="ml-1 text-gray-500 hover:text-gray-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 )}
                 {(dateStart || dateEnd) && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-xs rounded-full">
-                    {dateStart && dateEnd ? `${dateStart} - ${dateEnd}` : dateStart || dateEnd}
-                    <button onClick={() => { setDateStart(""); setDateEnd(""); }} className="hover:text-green-900">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    📅 {dateStart && dateEnd ? `${dateStart} - ${dateEnd}` : dateStart || dateEnd}
+                    <button onClick={() => { setDateStart(""); setDateEnd(""); }} className="ml-1 text-gray-500 hover:text-gray-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 )}
                 {sortBy !== "date-asc" && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs rounded-full">
-                    Sort: {getSortLabel(sortBy)}
-                    <button onClick={() => setSortBy("date-asc")} className="hover:text-amber-900">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                    ↑ {getSortLabel(sortBy)}
+                    <button onClick={() => setSortBy("date-asc")} className="ml-1 text-gray-500 hover:text-gray-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>

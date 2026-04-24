@@ -163,7 +163,7 @@ export function FilterDrawer({
                       onClick={() => onSortByChange(option.value)}
                       className={`flex items-center gap-2 text-sm px-3 py-2.5 rounded-lg border transition-colors text-left ${
                         sortBy === option.value
-                          ? "border-gray-900 bg-gray-900 text-white"
+                          ? "border-amber-600 bg-amber-600 text-white"
                           : "border-gray-200 hover:border-gray-300 text-gray-700"
                       }`}
                     >

@@ -14,9 +14,9 @@ interface TournamentFiltersProps {
 }
 
 const timeControlOptions = [
-  { value: "STANDARD" as const, label: "Standard" },
-  { value: "RAPID" as const, label: "Rapid" },
-  { value: "BLITZ" as const, label: "Blitz" },
+  { value: "STANDARD" as const, label: "⏱ Standard" },
+  { value: "RAPID" as const, label: "♟ Rapid" },
+  { value: "BLITZ" as const, label: "⚡ Blitz" },
 ];
 
 export function TournamentFilters({
@@ -45,7 +45,7 @@ export function TournamentFilters({
         />
       </div>
 
-      {/* Time Control Filter Buttons */}
+      {/* Time Control Filter Buttons with emoji */}
       <div className="flex gap-2 items-center flex-wrap">
         {timeControlOptions.map((option) => (
           <Badge
