@@ -5,6 +5,9 @@ import { TournamentCard } from "@/components/tournaments/tournament-card";
 import { TournamentListSkeleton } from "@/components/tournaments/tournament-skeleton";
 import { FilterDrawer } from "@/components/tournaments/filter-drawer";
 import { LoadMoreButton } from "@/components/tournaments/load-more-button";
+import { TournamentFilters } from "@/components/tournaments/tournament-filters";
+import { CountryFilter } from "@/components/tournaments/country-filter";
+import { DatePickerV2 } from "@/components/tournaments/date-picker-v2";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, X, Trophy, SlidersHorizontal } from "lucide-react";
@@ -204,11 +207,12 @@ export default function TournamentsPage() {
             </div>
           </div>
 
-          {/* Desktop layout: inline expandable filters */}
-          <div className="hidden lg:flex flex-col gap-2">
-            {/* Search + Filters button on one line */}
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1">
+          {/* Desktop layout: inline filters next to search */}
+          <div className="hidden lg:block">
+            {/* Search + Inline filters on one compact row */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Search Bar */}
+              <div className="relative flex-1 min-w-xs">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   placeholder="Search tournaments..."
@@ -217,64 +221,84 @@ export default function TournamentsPage() {
                   className="pl-10 h-10 text-sm w-full"
                 />
               </div>
+
+              {/* Time Control Filter */}
+              <div className="flex gap-1.5">
+                {[
+                  { value: "STANDARD" as const, label: "⏱" },
+                  { value: "RAPID" as const, label: "♟" },
+                  { value: "BLITZ" as const, label: "⚡" },
+                ].map((option) => {
+                  const isActive = timeControl.includes(option.value);
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        const newValue = isActive
+                          ? timeControl.filter((t) => t !== option.value)
+                          : [...timeControl, option.value];
+                        setTimeControl(newValue);
+                      }}
+                      title={option.value}
+                      className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 shadow-sm hover:shadow-md"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Country Filter */}
+              <div className="flex gap-1.5">
+                {[
+                  { value: "Lithuania" as const, label: "🇱🇹" },
+                  { value: "Latvia" as const, label: "🇱🇻" },
+                ].map((option) => {
+                  const isSelected = country.includes(option.value);
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        const newSelected = isSelected
+                          ? country.filter((c) => c !== option.value)
+                          : [...country, option.value];
+                        setCountry(newSelected);
+                      }}
+                      title={option.value}
+                      className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+                        isSelected
+                          ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 shadow-sm hover:shadow-md"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Date Range Picker */}
+              <div className="flex-shrink-0">
+                <DatePickerV2
+                  selectedDateStart={dateStart}
+                  selectedDateEnd={dateEnd}
+                  onDateRangeSelect={handleDateRangeChange}
+                />
+              </div>
+
+              {/* Mobile filters button (hidden on desktop, shown for fallback) */}
               <button
                 onClick={() => setFilterDrawerOpen(true)}
-                className={`flex items-center gap-1.5 px-3 py-2 text-sm border rounded-lg transition-all whitespace-nowrap font-medium ${
-                  hasActiveFilters
-                    ? "border-amber-600 bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700"
-                    : "border-gray-300 bg-gray-50 text-gray-700 hover:bg-white hover:shadow-md shadow-sm"
-                }`}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all whitespace-nowrap"
               >
                 <SlidersHorizontal className="h-4 w-4" />
-                Filters
+                More
               </button>
             </div>
-
-            {/* Active filters on expanded row */}
-            {hasActiveFilters && (
-              <div className="flex flex-wrap gap-2 items-center p-2 bg-gray-50 rounded-lg border border-gray-200">
-                {search && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
-                    🔍 {search}
-                    <button onClick={() => setSearch("")} className="ml-1 text-gray-500 hover:text-gray-900">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-                {timeControl.length < 3 && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
-                    {timeControl.map((t) => ({STANDARD: "⏱", RAPID: "♟", BLITZ: "⚡"}[t])).join("")} {timeControl.join(", ")}
-                    <button onClick={() => setTimeControl(["STANDARD", "RAPID", "BLITZ"])} className="ml-1 text-gray-500 hover:text-gray-900">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-                {country.length < 2 && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
-                    🌍 {country.join(", ")}
-                    <button onClick={() => setCountry(["Lithuania", "Latvia"])} className="ml-1 text-gray-500 hover:text-gray-900">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-                {(dateStart || dateEnd) && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
-                    📅 {dateStart && dateEnd ? `${dateStart} - ${dateEnd}` : dateStart || dateEnd}
-                    <button onClick={() => { setDateStart(""); setDateEnd(""); }} className="ml-1 text-gray-500 hover:text-gray-900">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-                {sortBy !== "date-asc" && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 transition-colors">
-                    ↑ {getSortLabel(sortBy)}
-                    <button onClick={() => setSortBy("date-asc")} className="ml-1 text-gray-500 hover:text-gray-900">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>
