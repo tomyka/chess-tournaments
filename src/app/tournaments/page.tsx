@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { TournamentCard } from "@/components/tournaments/tournament-card";
 import { TournamentListSkeleton } from "@/components/tournaments/tournament-skeleton";
 import { FilterDrawer } from "@/components/tournaments/filter-drawer";
@@ -10,7 +10,7 @@ import { CountryFilter } from "@/components/tournaments/country-filter";
 import { DatePickerV2 } from "@/components/tournaments/date-picker-v2";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, X, Trophy, SlidersHorizontal } from "lucide-react";
+import { Search, X, Trophy, SlidersHorizontal, ChevronDown } from "lucide-react";
 import type {
   Tournament,
   TimeControlFilter,
@@ -46,7 +46,27 @@ export default function TournamentsPage() {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<SortOption>("date-asc");
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close sort dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        sortDropdownRef.current &&
+        !sortDropdownRef.current.contains(event.target as Node)
+      ) {
+        setSortDropdownOpen(false);
+      }
+    }
+
+    if (sortDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [sortDropdownOpen]);
   const fetchTournaments = useCallback(async (pageNum: number = 1) => {
     const isFirstPage = pageNum === 1;
     if (isFirstPage) {
@@ -252,7 +272,7 @@ export default function TournamentsPage() {
                 })}
               </div>
 
-              {/* Country Filter */}
+              {/* Country Filter - Fixed width badges */}
               <div className="flex gap-1.5">
                 {[
                   { value: "Lithuania" as const, label: "🇱🇹" },
@@ -269,7 +289,7 @@ export default function TournamentsPage() {
                         setCountry(newSelected);
                       }}
                       title={option.value}
-                      className={`px-2 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                      className={`w-10 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                         isSelected
                           ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 shadow-sm hover:shadow-md"
@@ -290,29 +310,49 @@ export default function TournamentsPage() {
                 />
               </div>
 
-              {/* Sort By */}
-              <div className="flex gap-1.5">
-                {[
-                  { value: "date-asc" as const, label: "📅 Upcoming" },
-                  { value: "date-desc" as const, label: "📅 Recent" },
-                  { value: "players-desc" as const, label: "👥 Most" },
-                ].map((option) => {
-                  const isActive = sortBy === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      onClick={() => setSortBy(option.value)}
-                      title={option.value}
-                      className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${
-                        isActive
-                          ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 shadow-sm hover:shadow-md"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
+              {/* Sort By Dropdown */}
+              <div className="relative" ref={sortDropdownRef}>
+                <button
+                  onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                  className={`flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    sortBy !== "date-asc"
+                      ? "bg-amber-600 text-white shadow-md hover:shadow-lg hover:bg-amber-700 active:shadow-sm"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 shadow-sm hover:shadow-md"
+                  }`}
+                >
+                  ↑
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+
+                {/* Dropdown Menu */}
+                {sortDropdownOpen && (
+                  <div className="absolute top-full mt-1 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-max">
+                    {[
+                      { value: "date-asc" as const, label: "📅 Upcoming" },
+                      { value: "date-desc" as const, label: "📅 Recent" },
+                      { value: "players-desc" as const, label: "👥 Most players" },
+                      { value: "rating-desc" as const, label: "🎯 Highest rated" },
+                    ].map((option) => {
+                      const isActive = sortBy === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            setSortBy(option.value);
+                            setSortDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? "bg-amber-600 text-white"
+                              : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
