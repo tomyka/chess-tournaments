@@ -1,46 +1,45 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Clock, ExternalLink, Calendar } from "lucide-react";
+import { ExternalLink, MapPin } from "lucide-react";
 import type { Tournament } from "@/types/tournament";
 
-const timeControlColors: Record<string, string> = {
-  STANDARD: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  RAPID: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  BLITZ: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  UNKNOWN: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+const timeControlIcon: Record<string, string> = {
+  STANDARD: "⏱",
+  RAPID: "♟",
+  BLITZ: "⚡",
+  UNKNOWN: "?",
 };
 
-const timeControlLabels: Record<string, string> = {
+const timeControlLabel: Record<string, string> = {
   STANDARD: "Standard",
   RAPID: "Rapid",
   BLITZ: "Blitz",
   UNKNOWN: "Unknown",
 };
 
-function formatDateRange(startDate: string | null, endDate: string | null): string | null {
-  if (!startDate) return null;
-  const fmt = (d: string) =>
-    new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-  const start = fmt(startDate);
-  if (!endDate) return start;
-  const end = fmt(endDate);
-  return start === end ? start : `${start} – ${end}`;
-}
+function formatDate(dateStr: string | null): { label: string; highlight: boolean } | null {
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
 
-function getStatusColor(status: string): string {
-  switch (status) {
-    case "NOT_STARTED":
-      return "bg-blue-400";
-    case "IN_PROGRESS":
-      return "bg-green-400";
-    case "FINISHED":
-      return "bg-purple-400";
-    default:
-      return "bg-gray-400";
-  }
+  if (d.getTime() === today.getTime()) return { label: "Today", highlight: true };
+  if (d.getTime() === tomorrow.getTime()) return { label: "Tomorrow", highlight: true };
+
+  return {
+    label: date.toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }),
+    highlight: false,
+  };
 }
 
 interface TournamentCardProps {
@@ -49,74 +48,81 @@ interface TournamentCardProps {
 }
 
 export function TournamentCard({ tournament, index }: TournamentCardProps) {
+  const dateInfo = formatDate(tournament.startDate);
+  const showStatus =
+    tournament.status === "NOT_STARTED" || tournament.status === "FINISHED";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
-      <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5 relative overflow-hidden">
-        {/* Status indicator */}
-        <div className={`absolute top-0 right-0 h-1 w-full ${getStatusColor(tournament.status)}`} />
-        <CardHeader className="pb-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-base leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-              {tournament.name}
-            </h3>
-            <a
-              href={tournament.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-              onClick={(e) => e.stopPropagation()}
+      <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden">
+        {/* Header — entire area tappable, opens tournament page */}
+        <a
+          href={tournament.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-start justify-between gap-2 px-4 pt-4 pb-2 group"
+        >
+          <h3 className="font-semibold text-[16px] leading-snug line-clamp-2 text-gray-900 group-hover:text-blue-600 transition-colors">
+            {tournament.name}
+          </h3>
+          <ExternalLink className="h-4 w-4 shrink-0 text-gray-400 group-hover:text-blue-500 mt-0.5 transition-colors" />
+        </a>
+
+        {/* Meta row: ⚡ Blitz · 👥 19 · 🎯 1053 */}
+        <div className="px-4 pb-1.5 flex items-center gap-2 text-[13px] text-gray-500 overflow-hidden">
+          <span className="whitespace-nowrap">
+            {timeControlIcon[tournament.timeControl]} {timeControlLabel[tournament.timeControl]}
+          </span>
+          {tournament.playerCount != null && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span className="whitespace-nowrap">👥 {tournament.playerCount}</span>
+            </>
+          )}
+          {tournament.averageRating != null && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span className="whitespace-nowrap">🎯 {tournament.averageRating}</span>
+            </>
+          )}
+        </div>
+
+        {/* Date row — stronger contrast, semibold, highlights today/tomorrow */}
+        {dateInfo && (
+          <div
+            className={`px-4 pb-3 flex items-center gap-1.5 text-[13px] font-semibold ${
+              dateInfo.highlight ? "text-amber-600" : "text-gray-800"
+            }`}
+          >
+            📅 {dateInfo.label}
+          </div>
+        )}
+
+        {/* Optional: Location — only shown when available */}
+        {tournament.city && (
+          <div className="px-4 pb-3 -mt-1 flex items-center gap-1.5 text-[13px] text-gray-500">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span>{tournament.city}</span>
+          </div>
+        )}
+
+        {/* Optional: Status badge — only when it changes user action */}
+        {showStatus && (
+          <div className="px-4 pb-3">
+            <span
+              className={`text-[12px] font-medium ${
+                tournament.status === "NOT_STARTED" ? "text-green-700" : "text-gray-400"
+              }`}
             >
-              <ExternalLink className="h-4 w-4" />
-            </a>
+              {tournament.status === "NOT_STARTED" ? "🟢 Registration open" : "🔒 Closed"}
+            </span>
           </div>
-          {/* Type, player count, and rating in one row */}
-          <div className="text-xs text-muted-foreground mt-1.5 flex items-center gap-2 flex-wrap">
-            <Badge
-              variant="secondary"
-              className={`${timeControlColors[tournament.timeControl]} text-xs`}
-            >
-              <Clock className="mr-1 h-3 w-3" />
-              {timeControlLabels[tournament.timeControl]}
-            </Badge>
-            {tournament.playerCount && (
-              <>
-                <Users className="h-3 w-3 shrink-0" />
-                <span className="font-medium">{tournament.playerCount}</span>
-              </>
-            )}
-            {tournament.averageRating && (
-              <>
-                {tournament.playerCount && <span>•</span>}
-                <span className="font-medium">Ø {tournament.averageRating}</span>
-              </>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-            {/* Date and Location in one row */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {formatDateRange(tournament.startDate, tournament.endDate) && (
-                <>
-                  <Calendar className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{formatDateRange(tournament.startDate, tournament.endDate)}</span>
-                  {tournament.city && <span>,</span>}
-                </>
-              )}
-              {tournament.city && (
-                <>
-                  <MapPin className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{tournament.city}</span>
-                </>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </motion.div>
   );
 }

@@ -6,9 +6,11 @@ import { TournamentFilters } from "@/components/tournaments/tournament-filters";
 import { TournamentListSkeleton } from "@/components/tournaments/tournament-skeleton";
 import { DatePickerV2 } from "@/components/tournaments/date-picker-v2";
 import { CountryFilter } from "@/components/tournaments/country-filter";
+import { FilterDrawer } from "@/components/tournaments/filter-drawer";
 import { LoadMoreButton } from "@/components/tournaments/load-more-button";
 import { Button } from "@/components/ui/button";
-import { X, Trophy } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Search, X, Trophy, SlidersHorizontal } from "lucide-react";
 import type {
   Tournament,
   TimeControlFilter,
@@ -43,6 +45,7 @@ export default function TournamentsPage() {
   const [dateEnd, setDateEnd] = useState<string>("");
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<SortOption>("date-asc");
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   
   const fetchTournaments = useCallback(async (pageNum: number = 1) => {
     const isFirstPage = pageNum === 1;
@@ -139,46 +142,90 @@ export default function TournamentsPage() {
   const hasMore = data ? page < data.pagination.totalPages : false;
   const displayTournaments = allTournaments;
 
+  // Build active-filter summary for mobile bar
+  const timeControlLabels: Record<string, string> = { STANDARD: "Standard", RAPID: "Rapid", BLITZ: "Blitz" };
+  const filterSummaryParts = [
+    timeControl.length < 3 ? timeControl.map((t) => timeControlLabels[t]).join(", ") : null,
+    country.length < 2 ? country.join(", ") : null,
+    dateStart ? new Date(dateStart).toLocaleDateString("en-GB", { month: "short", year: "numeric" }) : null,
+    sortBy !== "date-asc" ? getSortLabel(sortBy) : null,
+  ].filter(Boolean);
+  const filterSummary = filterSummaryParts.join(" · ");
+  const hasActiveFilters = filterSummaryParts.length > 0 || search;
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Sticky Header - Filters only */}
+      {/* Mobile Filter Drawer */}
+      <FilterDrawer
+        isOpen={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        timeControl={timeControl}
+        onTimeControlChange={handleTimeControlChange}
+        country={country}
+        onCountryChange={setCountry}
+        dateStart={dateStart}
+        dateEnd={dateEnd}
+        onDateRangeChange={handleDateRangeChange}
+        sortBy={sortBy}
+        onSortByChange={(v) => setSortBy(v as SortOption)}
+        onClearAll={handleClearFilters}
+      />
+
+      {/* Sticky Header */}
       <div className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-3">
-          {/* Filter Section */}
-          <div className="space-y-3">
-            {/* All filters in one row with separators */}
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-wrap">
-              {/* Group 1: Search and Time Control */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
+
+          {/* ── Mobile layout (hidden on sm+) ── */}
+          <div className="flex flex-col gap-2 sm:hidden">
+            {/* Full-width search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search tournaments..."
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-10 h-11 text-sm w-full"
+              />
+            </div>
+
+            {/* Filter summary bar */}
+            <div className="flex items-center gap-2">
+              <div className="flex-1 text-sm text-gray-500 truncate">
+                <span className="text-gray-400">Filters: </span>
+                {filterSummary || "All"}
+              </div>
+              <button
+                onClick={() => setFilterDrawerOpen(true)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg transition-colors whitespace-nowrap ${
+                  hasActiveFilters
+                    ? "border-gray-900 bg-gray-900 text-white"
+                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                Filters
+              </button>
+            </div>
+          </div>
+
+          {/* ── Desktop layout (hidden on mobile) ── */}
+          <div className="hidden sm:flex flex-col gap-3">
+            <div className="flex flex-row gap-3 items-center flex-wrap">
               <TournamentFilters
                 search={search}
                 onSearchChange={handleSearchChange}
                 timeControl={timeControl}
                 onTimeControlChange={handleTimeControlChange}
               />
-              
-              {/* Separator */}
               <div className="hidden sm:block h-6 w-px bg-gray-200" />
-              
-              {/* Group 2: Country */}
-              <CountryFilter
-                selected={country}
-                onChange={setCountry}
-              />
-              
-              {/* Separator */}
+              <CountryFilter selected={country} onChange={setCountry} />
               <div className="hidden sm:block h-6 w-px bg-gray-200" />
-              
-              {/* Group 3: Date */}
               <DatePickerV2
                 selectedDateStart={dateStart}
                 selectedDateEnd={dateEnd}
                 onDateRangeSelect={handleDateRangeChange}
               />
-              
-              {/* Separator */}
               <div className="hidden sm:block h-6 w-px bg-gray-200" />
-              
-              {/* Group 4: Sort - aligned to right */}
               <div className="flex items-center gap-2 sm:ml-auto">
                 <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
                   Sort by:
@@ -197,16 +244,13 @@ export default function TournamentsPage() {
               </div>
             </div>
 
-            {/* Active filters pills */}
+            {/* Active filter pills (desktop) */}
             {(search || timeControl.length < 3 || country.length < 2 || dateStart || sortBy !== "date-asc") && (
               <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-gray-100">
                 {search && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
                     Search: {search}
-                    <button
-                      onClick={() => setSearch("")}
-                      className="hover:text-blue-900"
-                    >
+                    <button onClick={() => setSearch("")} className="hover:text-blue-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
@@ -214,12 +258,7 @@ export default function TournamentsPage() {
                 {timeControl.length < 3 && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">
                     {timeControl.join(", ")}
-                    <button
-                      onClick={() =>
-                        setTimeControl(["STANDARD", "RAPID", "BLITZ"])
-                      }
-                      className="hover:text-purple-900"
-                    >
+                    <button onClick={() => setTimeControl(["STANDARD", "RAPID", "BLITZ"])} className="hover:text-purple-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
@@ -227,28 +266,15 @@ export default function TournamentsPage() {
                 {country.length < 2 && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-full">
                     {country.join(", ")}
-                    <button
-                      onClick={() =>
-                        setCountry(["Lithuania", "Latvia"])
-                      }
-                      className="hover:text-indigo-900"
-                    >
+                    <button onClick={() => setCountry(["Lithuania", "Latvia"])} className="hover:text-indigo-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 )}
                 {(dateStart || dateEnd) && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-xs rounded-full">
-                    {dateStart && dateEnd
-                      ? `${dateStart} - ${dateEnd}`
-                      : dateStart || dateEnd}
-                    <button
-                      onClick={() => {
-                        setDateStart("");
-                        setDateEnd("");
-                      }}
-                      className="hover:text-green-900"
-                    >
+                    {dateStart && dateEnd ? `${dateStart} - ${dateEnd}` : dateStart || dateEnd}
+                    <button onClick={() => { setDateStart(""); setDateEnd(""); }} className="hover:text-green-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
@@ -256,10 +282,7 @@ export default function TournamentsPage() {
                 {sortBy !== "date-asc" && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs rounded-full">
                     Sort: {getSortLabel(sortBy)}
-                    <button
-                      onClick={() => setSortBy("date-asc")}
-                      className="hover:text-amber-900"
-                    >
+                    <button onClick={() => setSortBy("date-asc")} className="hover:text-amber-900">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
@@ -271,39 +294,26 @@ export default function TournamentsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 w-full">
+      <div className="flex-1 mx-auto max-w-7xl px-4 py-4 sm:py-8 sm:px-6 lg:px-8 w-full">
         {loading ? (
           <TournamentListSkeleton />
         ) : displayTournaments.length > 0 ? (
           <>
-            {/* Clear filters button */}
             {(search || timeControl.length < 3 || country.length < 2 || dateStart || dateEnd) && (
-              <div className="mb-6 flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearFilters}
-                >
+              <div className="mb-4 flex justify-end">
+                <Button variant="outline" size="sm" onClick={handleClearFilters}>
                   Clear all filters
                 </Button>
               </div>
             )}
 
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {displayTournaments.map((tournament, index) => (
-                <TournamentCard
-                  key={tournament.id}
-                  tournament={tournament}
-                  index={index}
-                />
+                <TournamentCard key={tournament.id} tournament={tournament} index={index} />
               ))}
             </div>
 
-            <LoadMoreButton
-              onClick={handleLoadMore}
-              isLoading={loadingMore}
-              hasMore={hasMore}
-            />
+            <LoadMoreButton onClick={handleLoadMore} isLoading={loadingMore} hasMore={hasMore} />
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
