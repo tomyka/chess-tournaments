@@ -49,8 +49,6 @@ interface TournamentCardProps {
 
 export function TournamentCard({ tournament, index }: TournamentCardProps) {
   const dateInfo = formatDate(tournament.startDate);
-  const showStatus =
-    tournament.status === "NOT_STARTED" || tournament.status === "FINISHED";
 
   return (
     <motion.div
@@ -107,19 +105,6 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
           <div className="px-4 pb-3 -mt-1 flex items-center gap-1.5 text-[13px] text-gray-500">
             <MapPin className="h-3.5 w-3.5 shrink-0" />
             <span>{tournament.city}</span>
-          </div>
-        )}
-
-        {/* Optional: Status badge — only when it changes user action */}
-        {showStatus && (
-          <div className="px-4 pb-3">
-            <span
-              className={`text-[12px] font-medium ${
-                tournament.status === "NOT_STARTED" ? "text-green-700" : "text-gray-400"
-              }`}
-            >
-              {tournament.status === "NOT_STARTED" ? "🟢 Registration open" : "🔒 Closed"}
-            </span>
           </div>
         )}
       </div>

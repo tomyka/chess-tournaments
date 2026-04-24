@@ -121,13 +121,13 @@ export function DatePicker({
               bgColor = "";
               textColor = "text-gray-300";
             } else if (isStart || isEnd) {
-              bgColor = "bg-black text-white";
+              bgColor = "bg-amber-600 text-white";
               textColor = "text-white";
             } else if (inRange) {
               bgColor = "bg-gray-200";
               textColor = "text-gray-700";
             } else if (isToday) {
-              bgColor = "border-2 border-black";
+              bgColor = "border-2 border-amber-600";
               textColor = "text-gray-900 font-semibold";
             } else {
               bgColor = "hover:bg-gray-100";
@@ -265,7 +265,7 @@ export function DatePicker({
               <Button
                 onClick={handleApply}
                 disabled={!tempStart}
-                className="flex-1 h-10 text-sm font-semibold bg-black hover:bg-gray-800 text-white rounded-lg"
+                className="flex-1 h-10 text-sm font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-lg"
               >
                 Search
               </Button>
